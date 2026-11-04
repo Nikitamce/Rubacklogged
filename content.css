@@ -1,0 +1,143 @@
+/* Backloggd i18n — RU/EN switcher in the site navbar */
+
+#backloggd-i18n-switcher.bi18n {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  margin: 0 8px 0 auto;
+  order: 99;
+}
+
+.bi18n-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bi18n-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(69, 243, 160, 0.55);
+  box-shadow: 0 0 10px rgba(69, 243, 160, 0.18);
+}
+
+.bi18n-btn:focus-visible {
+  outline: 2px solid #45f3a0;
+  outline-offset: 2px;
+}
+
+.bi18n-globe {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.bi18n-lang {
+  color: #45f3a0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.bi18n-btn.bi18n-off {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.bi18n-btn.bi18n-off .bi18n-lang {
+  color: #9aa4ad;
+}
+
+/* Fallback when the site navigation cannot be found (unusual pages). */
+#backloggd-i18n-switcher.bi18n-fallback {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 2147483000;
+  margin: 0;
+}
+
+@media (max-width: 575.98px) {
+  .bi18n-btn {
+    padding: 3px 7px;
+  }
+
+  .bi18n-globe {
+    display: none;
+  }
+}
+
+/*
+ * Labels rendered by the site through CSS `content:` have no text nodes and
+ * cannot be translated by the DOM engine. Keep them in sync with RU/EN via
+ * the class set by content.js.
+ */
+html.backloggd-i18n-active .collapse-text-more.collapsed::after {
+  content: " РАЗВЕРНУТЬ" !important;
+}
+
+html.backloggd-i18n-active .collapse-text-more:not(.collapsed)::after {
+  content: " СВЕРНУТЬ" !important;
+}
+
+html.backloggd-i18n-active .review-more.collapsed::after {
+  content: " РАЗВЕРНУТЬ" !important;
+}
+
+html.backloggd-i18n-active .review-more:not(.collapsed)::after {
+  content: " СВЕРНУТЬ" !important;
+}
+
+html.backloggd-i18n-active #center-content #summary-expand-btn.collapsed::after {
+  content: "Показать ещё" !important;
+}
+
+html.backloggd-i18n-active #center-content #summary-expand-btn:not(.collapsed)::after {
+  content: "Свернуть" !important;
+}
+
+html.backloggd-i18n-active .custom-file-input ~ .custom-file-label::after {
+  content: "Обзор" !important;
+}
+
+/* The game sidebar is narrow; keep compact Russian labels on one line. */
+html.backloggd-i18n-active #interaction-sidebar .btn-main {
+  font-size: 0.85rem !important;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+html.backloggd-i18n-active #interaction-sidebar .btn-play p,
+html.backloggd-i18n-active #interaction-sidebar .log-btn p,
+html.backloggd-i18n-active #interaction-sidebar .log-status-btn-label {
+  font-size: 0.68rem !important;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Changelog release tags (New / Changed / Fixed):
+   Russian words like "Исправлено" and "Изменено" are wider than "Fixed" and "New".
+   Increase badge min-width and horizontal padding so text never clips. */
+html.backloggd-i18n-active .changelog-card .tag-outline {
+  min-width: 95px !important;
+}
+
+html.backloggd-i18n-active .changelog-card .tag {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  white-space: nowrap !important;
+}
+
+html.backloggd-i18n-active .changelog-card .tag p {
+  font-size: 0.75rem !important;
+  letter-spacing: -0.01em;
+}
+

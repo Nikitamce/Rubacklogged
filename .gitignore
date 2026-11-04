@@ -1,0 +1,7 @@
+node_modules/
+.gemini/
+__pycache__/
+*.pyc
+temp_*
+chunk_*
+*.log

@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Backloggd i18n — Russian"
+  },
+  "extDesc": {
+    "message": "Safe Russian interface translation for Backloggd.com. Exact-match engine keeps game titles and reviews intact."
+  },
+  "actionTitle": {
+    "message": "Backloggd i18n — Russian interface"
+  }
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backloggd i18n</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header class="header">
+      <div class="brand">
+        <span class="badge">i18n</span>
+        <h1>Backloggd RU</h1>
+      </div>
+      <span class="version">v2.0.9</span>
+    </header>
+
+    <section class="status-card" aria-live="polite">
+      <div class="status-main">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Проверяем страницу…</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-enabled" aria-label="Включить русский перевод">
+        <span class="slider"></span>
+      </label>
+    </section>
+
+    <p class="hint" id="hint" hidden>Обновите страницу Backloggd, чтобы применить настройки.</p>
+
+    <section class="lang-group">
+      <span class="section-label">Язык интерфейса</span>
+      <div class="lang-options">
+        <button type="button" class="lang-btn" id="btn-lang-ru">
+          <span class="lang-flag">🇷🇺</span>
+          <span class="lang-name">Русский</span>
+          <span class="lang-tag">перевод</span>
+        </button>
+        <button type="button" class="lang-btn" id="btn-lang-en">
+          <span class="lang-flag">🇬🇧</span>
+          <span class="lang-name">English</span>
+          <span class="lang-tag">оригинал</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="stats" id="stats" hidden>
+      <span>Переведено фрагментов:</span>
+      <strong id="translated-count">0</strong>
+    </section>
+
+    <button type="button" class="rescan" id="rescan">Перевести заново</button>
+
+    <div class="features">
+      <p><span aria-hidden="true">✓</span> Только целые строки — названия игр и отзывы не меняются</p>
+      <p><span aria-hidden="true">✓</span> Инкрементальный перевод после Turbo-переходов</p>
+    </div>
+
+    <footer class="footer">
+      <a href="https://backloggd.com/" target="_blank" rel="noopener">Открыть Backloggd.com ↗</a>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
