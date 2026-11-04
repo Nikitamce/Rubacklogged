@@ -1,0 +1,281 @@
+import pkg from '../package.json' with { type: 'json' };
+
+export const REPO_URL = 'https://github.com/NemoKing1210/backloggd-plus';
+/** Default Plus accent color; presets offered in Settings → General → Accent color. */
+export const DEFAULT_ACCENT_COLOR = '#3db89a';
+export const ACCENT_PRESETS = [
+  DEFAULT_ACCENT_COLOR,
+  '#66c0f4',
+  '#8b9cf7',
+  '#c084fc',
+  '#f472b6',
+  '#ea377a',
+  '#f87171',
+  '#fb923c',
+  '#facc15',
+  '#a3e635',
+];
+export const DATA_TRANSFER_REPO_URL = 'https://github.com/NemoKing1210/backloggd-data-transfer';
+export const AUTHOR_NAME = 'NemoKing';
+export const AUTHOR_HANDLE = 'NemoKing1210';
+export const AUTHOR_URL = 'https://github.com/NemoKing1210';
+export const AUTHOR_EMAIL = 'nemoking1210@gmail.com';
+export const AUTHOR_AVATAR_URL = 'https://avatars.githubusercontent.com/u/58397369?s=96&v=4';
+export const AUTHOR_BACKLOGGD_URL = 'https://backloggd.com/u/NemoKing/';
+export const AUTHOR_BACKLOGGD_HANDLE = 'NemoKing';
+/** People credited in Settings → About (besides the author). */
+export const CONTRIBUTORS = [
+  {
+    name: 'Nikitamce',
+    handle: 'Nikitamce',
+    url: 'https://github.com/Nikitamce',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/187407575?s=96&v=4',
+  },
+  {
+    name: 'MaksVolkov7863',
+    handle: 'MaksVolkov7863',
+    url: 'https://github.com/MaksVolkov7863',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/128893502?s=96&v=4',
+  },
+];
+export const SCRIPT_VERSION = pkg.version;
+export const SETTINGS_KEY = 'blp_settings';
+export const CACHE_KEY = 'blp_cache_v1';
+export const CACHE_VERSION_KEY = 'blp_cache_script_version';
+export const STEAM_OVERRIDES_KEY = 'blp_steam_overrides';
+export const ROOT_ATTR = 'data-blp-root';
+export const ENRICH_ATTR = 'data-blp-enrich';
+export const STEAMDB_ATTR = 'data-blp-steamdb';
+export const SIMILAR_ATTR = 'data-blp-similar';
+export const CARD_ATTR = 'data-blp-card';
+export const CARD_STATE_ATTR = 'data-blp-card-state';
+export const CARD_APPID_ATTR = 'data-blp-card-appid';
+export const CARD_SLUG_ATTR = 'data-blp-card-slug';
+export const CARD_TITLE_ATTR = 'data-blp-card-title';
+export const FAVICON_URL = 'https://www.google.com/s2/favicons?domain={domain}&sz=32';
+export const SCAN_DEBOUNCE_MS = 400;
+export const CARD_CONCURRENCY = 3;
+export const CARD_ROOT_MARGIN = '240px 0px';
+export const CARD_SKIP_ANCESTOR =
+  '#game-profile, #game-body, #logging-sidebar-section, .blp-settings-backdrop, .blp-fix-match-backdrop, .blp-export-backdrop';
+/** Covers too small for badges (homepage Coming soon / Recently anticipated / Sleeper hits rows). Mini-profile still works there. */
+export const CARD_BADGE_SKIP_ANCESTOR = '.home-games-section';
+/** Mini-profile card tiers by Games Played count. */
+export const PROFILE_CARD_TIERS = [
+  { id: 'rookie', min: 0 },
+  { id: 'bronze', min: 25 },
+  { id: 'silver', min: 50 },
+  { id: 'gold', min: 100 },
+  { id: 'platinum', min: 200 },
+  { id: 'diamond', min: 300 },
+  { id: 'master', min: 500 },
+  { id: 'legend', min: 1000 },
+];
+/** Game mini-profile card tiers by Backloggd average rating (0–5 stars). Same ids/skins as user tiers. */
+export const GAME_CARD_TIERS = [
+  { id: 'rookie', min: 0 },
+  { id: 'bronze', min: 2.5 },
+  { id: 'silver', min: 3 },
+  { id: 'gold', min: 3.4 },
+  { id: 'platinum', min: 3.7 },
+  { id: 'diamond', min: 4 },
+  { id: 'master', min: 4.25 },
+  { id: 'legend', min: 4.5 },
+];
+/** How a mini-profile card is summoned: pointer hover, right-click, or Shift+click. */
+export const MINI_PROFILE_TRIGGERS = ['hover', 'contextmenu', 'shiftclick'];
+export const PROFILE_HOVER_OPEN_MS = 280;
+export const PROFILE_HOVER_CLOSE_MS = 180;
+export const PROFILE_LEAVE_MS = 300;
+export const PROFILE_FETCH_CONCURRENCY = 2;
+/** Preload mini-profiles slightly before profile links enter the viewport. */
+export const PROFILE_PRELOAD_ROOT_MARGIN = '160px 0px';
+export const GAME_HOVER_OPEN_MS = 280;
+export const GAME_HOVER_CLOSE_MS = 180;
+export const GAME_LEAVE_MS = 300;
+export const GAME_FETCH_CONCURRENCY = 2;
+/** Preload game mini-profiles slightly before covers enter the viewport. */
+export const GAME_PRELOAD_ROOT_MARGIN = '160px 0px';
+export const CACHE_HOURS_MAX = 168;
+/** Soft advisory budget for the settings meter (GM storage has no fixed quota). */
+export const CACHE_SOFT_LIMIT_BYTES = 5 * 1024 * 1024;
+export const STEAM_SEARCH_URL = 'https://store.steampowered.com/api/storesearch/';
+export const STEAM_DETAILS_URL = 'https://store.steampowered.com/api/appdetails';
+export const STEAM_REVIEWS_URL = 'https://store.steampowered.com/appreviews';
+export const STEAM_USERDATA_URL = 'https://store.steampowered.com/dynamicstore/userdata/';
+export const STEAM_POPULAR_TAGS_URL = 'https://store.steampowered.com/tagdata/populartags/english';
+export const STEAM_STORE_ITEMS_URL = 'https://api.steampowered.com/IStoreBrowseService/GetItems/v1/';
+export const STEAM_MORE_LIKE_URL = 'https://api.steampowered.com/IStoreQueryService/MoreLikeThis/v1/';
+export const STEAM_PLAYERS_URL = 'https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/';
+export const SIMILAR_GAMES_FETCH = 12;
+export const SIMILAR_GAMES_SHOW = 10;
+export const STEAM_DECK_REPORT_URL =
+  'https://store.steampowered.com/saleaction/ajaxgetdeckappcompatibilityreport';
+export const PROTONDB_SUMMARY_URL = 'https://www.protondb.com/api/v1/reports/summaries';
+/** OpenCritic's public API now needs a RapidAPI key (user-supplied in Settings → Game). */
+export const OPENCRITIC_RAPIDAPI_HOST = 'opencritic-api.p.rapidapi.com';
+export const OPENCRITIC_API_BASE = `https://${OPENCRITIC_RAPIDAPI_HOST}`;
+export const OPENCRITIC_KEY_URL =
+  'https://rapidapi.com/opencritic-opencritic-default/api/opencritic-api';
+export const PCGW_API = 'https://www.pcgamingwiki.com/w/api.php';
+export const OPENCRITIC_SOURCES = ['auto', 'api'];
+export const OPENCRITIC_SITE = 'https://opencritic.com';
+export const DDG_HTML_SEARCH = 'https://html.duckduckgo.com/html/';
+export const HLTB_SITE = 'https://howlongtobeat.com';
+export const HLTB_INIT_URL = `${HLTB_SITE}/api/bleed/init`;
+export const HLTB_SEARCH_URL = `${HLTB_SITE}/api/bleed`;
+export const ITAD_SITE = 'https://isthereanydeal.com';
+export const PCGW_SITE = 'https://www.pcgamingwiki.com';
+export const GOGDB_SITE = 'https://www.gogdb.org';
+export const GAMESLIKE_SITE = 'https://gameslike.co';
+export const STEAM_CDN_APPS = 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps';
+export const STEAM_CDN_STORE_ASSETS = 'https://shared.fastly.steamstatic.com/store_item_assets';
+export const STEAM_CDN_COMMUNITY_ICONS = 'https://shared.fastly.steamstatic.com/community_assets/images/apps';
+export const STEAMDB_SITE = 'https://steamdb.info';
+export const STEAMDB_APP_URL = `${STEAMDB_SITE}/app`;
+export const STEAM_TAGS_MAX = 12;
+export const GAMESTATUS_API_BASE = 'https://gamestatus.info/back/api/gameinfo/game';
+export const GAMESTATUS_SITE_BASE = 'https://gamestatus.info';
+export const GAMESTATUS_MAX_SLUG_ATTEMPTS = 2;
+export const USERDATA_CACHE_KEY = 'steam:userdata';
+export const USERDATA_EMPTY_TTL_MS = 5 * 60 * 1000;
+export const USERDATA_FALLBACK_TTL_MS = 60 * 60 * 1000;
+export const TAG_MAP_CACHE_KEY = 'steam:tagmap:english';
+export const TAG_MAP_TTL_MS = 7 * 24 * 3600 * 1000;
+export const GS_INVALID_SLUG_RE =
+  /^(https?-)?(store-)?steam(powered|static)?(-[a-z0-9]+)*(-com)?$|steampowered|steamstatic|akamaihd|^(on-)?wishlist$|^gamestatus$|^(soon-)?on-game-pass$/;
+
+/** How custom quick links are drawn in the Links row. */
+export const CUSTOM_LINK_STYLES = ['link', 'button'];
+
+export const LINK_KEYS = [
+  'igdb',
+  'steam',
+  'steamdb',
+  'metacritic',
+  'opencritic',
+  'hltb',
+  'pcgamingwiki',
+  'itad',
+  'gogdb',
+  'gameslike',
+];
+export const LINK_DOMAINS = {
+  igdb: 'igdb.com',
+  steam: 'store.steampowered.com',
+  steamdb: 'steamdb.info',
+  metacritic: 'metacritic.com',
+  opencritic: 'opencritic.com',
+  hltb: 'howlongtobeat.com',
+  pcgamingwiki: 'pcgamingwiki.com',
+  itad: 'isthereanydeal.com',
+  gogdb: 'gogdb.org',
+  gameslike: 'gameslike.co',
+};
+
+/** Steam Store `cc` codes in Settings (ISO 3166-1 alpha-2). */
+export const STEAM_COUNTRY_CODES = [
+  'US',
+  'GB',
+  'DE',
+  'FR',
+  'RU',
+  'KZ',
+  'BR',
+  'JP',
+  'KR',
+  'CN',
+  'AU',
+  'CA',
+  'PL',
+  'ES',
+  'IT',
+  'TR',
+  'UA',
+];
+
+export const DEFAULT_SETTINGS = {
+  cacheHours: 12,
+  cacheGameData: true,
+  cacheUserProfiles: true,
+  cacheTranslations: true,
+  cacheFx: true,
+  uiLocale: 'auto',
+  siteLocale: 'off',
+  accentColor: DEFAULT_ACCENT_COLOR,
+  steamCountry: 'US',
+  showPriceConvert: false,
+  convertCurrency: 'RUB',
+  showSteam: true,
+  showMetacritic: true,
+  showOpenCritic: true,
+  openCriticSource: 'auto',
+  openCriticApiKey: '',
+  showHltb: true,
+  showDeckProton: true,
+  showGameStatus: false,
+  showLinks: true,
+  customLinksSeparate: false,
+  customLinksStyle: 'link',
+  showSteamOwned: true,
+  showSteamWishlist: true,
+  showSteamTags: true,
+  showSteamCategories: true,
+  showSteamPageLink: true,
+  showSteamDbPageLink: true,
+  showSteamDbIcon: true,
+  showSteamDbCover: true,
+  showSteamDbGallery: true,
+  showSimilarGames: true,
+  showGameStats: true,
+  showSteamPlayers: true,
+  showSteamDbDetails: true,
+  showCardBadges: true,
+  showCardBadgePrice: true,
+  showCardBadgeReview: true,
+  showCardBadgeOwned: true,
+  showCardBadgeWishlist: true,
+  showCardBadgeGameStatus: false,
+  showGameMiniProfile: true,
+  gameMiniProfileTrigger: 'hover',
+  gameMiniProfileTiers: true,
+  preloadGameMiniProfile: false,
+  showExport: false,
+  showGameId: false,
+  showTranslate: true,
+  translateTargetLocale: 'auto',
+  translateDisplayMode: 'replace',
+  translateDescription: true,
+  translateReviews: true,
+  translateReviewsAuto: false,
+  hideHomepageFuse: true,
+  enhanceHeader: false,
+  showUserMiniProfile: true,
+  userMiniProfileTrigger: 'hover',
+  preloadUserMiniProfile: false,
+  userMiniProfileTiers: true,
+  showProfilePage: false,
+  showProfileHeader: true,
+  showProfileTierChip: true,
+  showProfileStats: true,
+  showProfileNav: true,
+  showProfileFavorites: true,
+  showProfileMenuSettings: false,
+  debugMode: false,
+  links: {
+    igdb: true,
+    steam: true,
+    steamdb: true,
+    metacritic: true,
+    opencritic: true,
+    hltb: true,
+    pcgamingwiki: true,
+    itad: true,
+    gogdb: true,
+    gameslike: true,
+  },
+  /** User-defined quick links (see utils/custom-links.js). */
+  customLinks: [],
+  /** Display order of built-in keys + custom ids; missing entries are appended. */
+  linkOrder: [],
+};
