@@ -22,7 +22,7 @@ async function run() {
   execSync('git config user.name "Nikitamce"', { stdio: 'inherit' });
   execSync('git config user.email "187407575+Nikitamce@users.noreply.github.com"', { stdio: 'inherit' });
   execSync('git add -A', { stdio: 'inherit' });
-  execSync('git commit -m "feat: auto-detect browser language and synchronize siteLocale with Backloggd Plus settings panel"', { stdio: 'inherit' });
+  execSync('git commit -m "fix: resolve game page features by fixing early init return and adding background proxy for cross-origin APIs"', { stdio: 'inherit' });
   
   const token = await getGitHubToken(accountUsername);
   if (!token) throw new Error(`No stored token found for ${accountUsername}`);

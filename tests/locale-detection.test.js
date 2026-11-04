@@ -61,3 +61,4 @@ test('defaults to Russian/on when browser language is Russian', async () => {
   const navLink = env.document.body.querySelector('.nav-link');
   assert.equal(navLink.textContent, 'Игры');
 });
+

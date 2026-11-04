@@ -17,8 +17,23 @@
     "*://backloggd.com/*",
     "*://www.backloggd.com/*",
     "*://store.steampowered.com/*",
-    "*://steamdb.info/*"
+    "*://api.steampowered.com/*",
+    "*://steamdb.info/*",
+    "*://howlongtobeat.com/*",
+    "*://*.protondb.com/*",
+    "*://*.opencritic.com/*",
+    "*://*.gamestatus.info/*",
+    "*://*.pcgamingwiki.com/*",
+    "*://*.isthereanydeal.com/*",
+    "*://*.gameslike.co/*",
+    "*://*.gogdb.org/*",
+    "*://*.jsdelivr.net/*",
+    "*://*.pages.dev/*",
+    "*://translate.googleapis.com/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_title": "__MSG_actionTitle__",
