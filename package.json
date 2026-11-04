@@ -1,6 +1,6 @@
 {
   "name": "backloggd-i18n-ru",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "private": true,
   "description": "Safe Russian interface translation for Backloggd.com (Manifest V3 extension).",
   "scripts": {
