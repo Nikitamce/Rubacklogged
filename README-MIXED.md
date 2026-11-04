@@ -34,3 +34,4 @@
 - `content.js`, `content.css` — скрипт контента и стили адаптации.
 - `plus/` — полный исходный код Backloggd Plus (с синхронизированным русским словарем в `plus/src/i18n/site/ru.json`).
 - `plus/backloggd-plus.user.js` — готовый скомпилированный Userscript.
+
