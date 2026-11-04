@@ -14,15 +14,37 @@
     version: document.querySelector('.version'),
   };
 
-  let state = { language: 'ru', enabled: true };
+  function detectBrowserLanguage() {
+    try {
+      const navLang = (typeof navigator !== 'undefined' && (navigator.language || (navigator.languages && navigator.languages[0]))) || '';
+      return navLang.toLowerCase().startsWith('ru') ? 'ru' : 'en';
+    } catch (e) {
+      return 'en';
+    }
+  }
+
+  function getDefaultSettings() {
+    const lang = detectBrowserLanguage();
+    return {
+      language: lang,
+      enabled: lang === 'ru',
+    };
+  }
+
+  const DEFAULT_SETTINGS = getDefaultSettings();
+
+  let state = Object.assign({}, DEFAULT_SETTINGS);
   let tabId = null;
   let tabUrl = '';
   let status = null;
 
   function sanitize(value) {
+    if (!value) return Object.assign({}, DEFAULT_SETTINGS);
+    const language = value.language === 'en' ? 'en' : (value.language === 'ru' ? 'ru' : DEFAULT_SETTINGS.language);
+    const enabled = typeof value.enabled === 'boolean' ? value.enabled : (language === 'ru');
     return {
-      language: value && value.language === 'en' ? 'en' : 'ru',
-      enabled: !(value && value.enabled === false),
+      language,
+      enabled,
     };
   }
 
@@ -36,11 +58,11 @@
   function storageGet() {
     return new Promise((resolve) => {
       try {
-        chrome.storage.sync.get({ language: 'ru', enabled: true }, (items) => {
-          resolve(items || { language: 'ru', enabled: true });
+        chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
+          resolve(items || DEFAULT_SETTINGS);
         });
       } catch (error) {
-        resolve({ language: 'ru', enabled: true });
+        resolve(DEFAULT_SETTINGS);
       }
     });
   }

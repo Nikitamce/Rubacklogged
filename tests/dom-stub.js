@@ -385,6 +385,10 @@ function createEnvironment() {
         observer = this;
       }
     },
+    navigator: {
+      language: 'ru-RU',
+      languages: ['ru-RU', 'ru', 'en'],
+    },
     chrome,
     console,
     setTimeout,

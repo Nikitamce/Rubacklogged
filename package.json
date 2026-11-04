@@ -4,7 +4,7 @@
   "private": true,
   "description": "Safe Russian interface translation for Backloggd.com (Manifest V3 extension).",
   "scripts": {
-    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js"
+    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js && node tests/locale-detection.test.js"
   },
   "engines": {
     "node": ">=18"

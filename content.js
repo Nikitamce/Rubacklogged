@@ -13,7 +13,24 @@
   'use strict';
 
   const SWITCHER_ID = 'backloggd-i18n-switcher';
-  const DEFAULT_SETTINGS = { language: 'ru', enabled: true };
+  function detectBrowserLanguage() {
+    try {
+      const navLang = (typeof navigator !== 'undefined' && (navigator.language || (navigator.languages && navigator.languages[0]))) || '';
+      return navLang.toLowerCase().startsWith('ru') ? 'ru' : 'en';
+    } catch (e) {
+      return 'en';
+    }
+  }
+
+  function getDefaultSettings() {
+    const lang = detectBrowserLanguage();
+    return {
+      language: lang,
+      enabled: lang === 'ru',
+    };
+  }
+
+  const DEFAULT_SETTINGS = getDefaultSettings();
   const ATTRS = ['placeholder', 'title', 'aria-label'];
 
   // Tags that never contain translatable UI copy or must stay untouched.
@@ -170,6 +187,21 @@
     finish(null);
   }
 
+  function syncPlusSettings(targetLocale) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      const key = 'blp_settings';
+      const raw = localStorage.getItem(key);
+      const data = raw ? JSON.parse(raw) : {};
+      if (data.siteLocale !== targetLocale) {
+        data.siteLocale = targetLocale;
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+  }
+
   function saveSettings() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
@@ -181,6 +213,7 @@
     } catch (error) {
       // Storage can be unavailable (private mode, invalidated context).
     }
+    syncPlusSettings(settings.enabled && settings.language === 'ru' ? 'ru' : 'off');
   }
 
   function applySettings(next, options) {
@@ -711,16 +744,45 @@
 
   function registerStorageHandler() {
     try {
-      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) return;
-      chrome.storage.onChanged.addListener((changes, area) => {
-        if (area !== 'sync') return;
-        const next = Object.assign({}, settings);
-        if (changes.language) next.language = changes.language.newValue;
-        if (changes.enabled) next.enabled = changes.enabled.newValue;
-        applySettings(next, { persist: false });
-      });
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+          if (area !== 'sync') return;
+          const next = Object.assign({}, settings);
+          if (changes.language) next.language = changes.language.newValue;
+          if (changes.enabled) next.enabled = changes.enabled.newValue;
+          applySettings(next, { persist: false });
+          syncPlusSettings(next.enabled && next.language === 'ru' ? 'ru' : 'off');
+        });
+      }
     } catch (error) {
       // Ignore invalidated contexts.
+    }
+
+    // Two-way synchronization with Backloggd Plus settings panel
+    if (typeof window !== 'undefined') {
+      window.addEventListener('blp:site-locale-changed', (event) => {
+        const locale = event.detail && event.detail.siteLocale;
+        if (locale === 'ru') {
+          applySettings({ language: 'ru', enabled: true });
+        } else {
+          applySettings({ language: 'en', enabled: false });
+        }
+      });
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'blp_settings' && event.newValue) {
+          try {
+            const data = JSON.parse(event.newValue);
+            if (data && typeof data.siteLocale === 'string') {
+              if (data.siteLocale === 'ru') {
+                applySettings({ language: 'ru', enabled: true });
+              } else {
+                applySettings({ language: 'en', enabled: false });
+              }
+            }
+          } catch (e) {}
+        }
+      });
     }
   }
 
