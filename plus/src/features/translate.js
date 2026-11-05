@@ -134,35 +134,38 @@ function ensureDescriptionButton() {
 
   summary.setAttribute(MARK_ATTR, 'desc');
 
+  // Purge any review-polluted desc slots
   document.querySelectorAll('.review-card .blp-translate-desc-slot').forEach((el) => el.remove());
   document.querySelectorAll(`.review-card .${BTN_CLASS}[data-blp-translate-kind="desc"]`).forEach((el) => {
     el.remove();
   });
 
-  const expand = document.getElementById('summary-expand-btn');
-  const slot = expand && !expand.closest('.review-card') ? expand.closest('.col-auto') : null;
-
-  // Clean up any extra or orphan desc slots or buttons in the summary container
-  const allDescButtons = [...document.querySelectorAll(`.${BTN_CLASS}[data-blp-translate-kind="desc"]`)].filter(
+  // Check if a desc translate button or desc slot already exists anywhere on page outside reviews
+  const existingButtons = [...document.querySelectorAll(`.${BTN_CLASS}[data-blp-translate-kind="desc"]`)].filter(
     (el) => !el.closest('.review-card')
   );
-  const allDescSlots = [...document.querySelectorAll('.blp-translate-desc-slot')].filter(
+  const existingSlots = [...document.querySelectorAll('.blp-translate-desc-slot')].filter(
     (el) => !el.closest('.review-card')
   );
 
-  // If slot container already has a translate button or desc-slot right before it, keep it and remove duplicates
-  if (allDescSlots.length > 0 || allDescButtons.length > 0) {
-    allDescSlots.slice(1).forEach((el) => el.remove());
-    allDescButtons.slice(1).forEach((el) => {
+  // If we already have one attached to the DOM, prune any excess and bail out
+  if (existingSlots.length > 0 || existingButtons.length > 0) {
+    existingSlots.slice(1).forEach((el) => el.remove());
+    existingButtons.slice(1).forEach((el) => {
       el.closest('.blp-translate-desc-slot')?.remove();
       el.remove();
     });
-    // Already present and correctly placed
-    if (allDescButtons[0]?.isConnected || allDescSlots[0]?.isConnected) return;
+    if (existingButtons[0]?.isConnected || existingSlots[0]?.isConnected) return;
   }
 
-  // Double check parent row / slot
-  if (slot?.parentElement?.querySelector('.blp-translate-desc-slot, .blp-translate-btn[data-blp-translate-kind="desc"]')) {
+  const expand = document.getElementById('summary-expand-btn');
+  const slot = expand && !expand.closest('.review-card') ? expand.closest('.col-auto') : null;
+
+  // In case the slot's parent or summary already contains our slot or button
+  if (
+    slot?.parentElement?.querySelector('.blp-translate-desc-slot, .blp-translate-btn[data-blp-translate-kind="desc"]') ||
+    summary.querySelector('.blp-translate-desc-slot, .blp-translate-btn[data-blp-translate-kind="desc"]')
+  ) {
     return;
   }
 
@@ -175,8 +178,16 @@ function ensureDescriptionButton() {
     slot.insertAdjacentElement('beforebegin', wrap);
     return;
   }
+
   if (summary.closest('.review-card')) return;
-  const row = summary.querySelector('.row') || summary;
+
+  // When there is no expand button (short description), put the button in a dedicated flex row under summary
+  let row = summary.querySelector('.row:not(.review-card .row)');
+  if (!row) {
+    row = document.createElement('div');
+    row.className = 'row mt-2';
+    summary.appendChild(row);
+  }
   row.appendChild(wrap);
 }
 
