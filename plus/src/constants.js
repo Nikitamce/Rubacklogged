@@ -100,6 +100,7 @@ export const CACHE_HOURS_MAX = 168;
 /** Soft advisory budget for the settings meter (GM storage has no fixed quota). */
 export const CACHE_SOFT_LIMIT_BYTES = 5 * 1024 * 1024;
 export const STEAM_SEARCH_URL = 'https://store.steampowered.com/api/storesearch/';
+export const STEAM_SUGGEST_URL = 'https://store.steampowered.com/search/suggest';
 export const STEAM_DETAILS_URL = 'https://store.steampowered.com/api/appdetails';
 export const STEAM_REVIEWS_URL = 'https://store.steampowered.com/appreviews';
 export const STEAM_USERDATA_URL = 'https://store.steampowered.com/dynamicstore/userdata/';

@@ -28,6 +28,7 @@ import {
   STEAM_POPULAR_TAGS_URL,
   STEAM_REVIEWS_URL,
   STEAM_SEARCH_URL,
+  STEAM_SUGGEST_URL,
   STEAM_STORE_ITEMS_URL,
   STEAM_TAGS_MAX,
   STEAM_USERDATA_URL,
@@ -772,7 +773,7 @@ export async function fetchSteamByAppId(appId, country, { onPartial, includeTags
 const STEAM_YEAR_MISMATCH_MIN_GAP = 10;
 
 export function parseSteamReleaseYear(details) {
-  const m = String(details?.release_date?.date || '').match(/(19|20)\d{2}/);
+  const m = String(details?.release_date?.date || '').match(/\b(19|20)\d{2}\b/);
   return m ? Number(m[0]) : null;
 }
 
@@ -988,7 +989,28 @@ export async function fetchSteamBundle(title, country, { onPartial, includeTags 
       round = await runParallelSearch('US');
     }
 
-    const { hit, anonymous } = round;
+    let { hit, anonymous } = round;
+
+    if (!hit) {
+      try {
+        const suggestUrl = `${STEAM_SUGGEST_URL}?term=${encodeURIComponent(title)}&f=games&cc=US&l=english`;
+        const suggestHtml = await gmRequest({ url: suggestUrl, responseType: 'text', anonymous: true });
+        const suggestItems = [...String(suggestHtml || '').matchAll(/data-ds-appid=["'](\d+)["'][\s\S]*?<div class=["']match_name["']>([^<]+)<\/div>/gi)].map((m) => ({
+          id: Number(m[1]),
+          name: m[2],
+          type: 'app',
+        }));
+        const suggestHit = pickSteamSearchItem(suggestItems, title, year) || null;
+        if (suggestHit) {
+          hit = suggestHit;
+          anonymous = true;
+          debug.suggestFallback = { url: suggestUrl, hit: suggestHit };
+        }
+      } catch (err) {
+        debug.suggestFallbackError = String(err?.message || err);
+      }
+    }
+
     debug.searchCountry = searchCountry;
     debug.usedUsFallback = usedUsFallback;
     debug.anonymous = anonymous;

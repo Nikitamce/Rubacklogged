@@ -56,7 +56,7 @@ export function isBenignTitlePrefixToken(token) {
 
 /** Tokens/phrases that are editions or platforms — not a different game. */
 const EDITION_SUFFIX_RE =
-  /^(game of the year|goty|definitive( edition)?|complete( edition)?|remastered|remake|deluxe( edition)?|ultimate( edition)?|gold( edition)?|standard( edition)?|premium( edition)?|collector'?s?( edition)?|anniversary( edition)?|enhanced( edition)?|director'?s cut|redux|legacy( edition)?|hd|vr|launcher|for windows( 10)?|pc( edition)?|windows|edition|collection)$/i;
+  /^(game of the year|goty|definitive( edition)?|complete( edition)?|remastered|remake|deluxe( edition)?|ultimate( edition)?|gold( edition)?|standard( edition)?|premium( edition)?|collector'?s?( edition)?|collector s( edition)?|anniversary( edition)?|enhanced( edition)?|director'?s cut|director s cut|redux|legacy( edition)?|hd|vr|launcher|for windows( 10)?|pc( edition)?|windows|edition|collection)$/i;
 
 export function isEditionOnlySuffix(text) {
   const raw = normalizeTitle(text);

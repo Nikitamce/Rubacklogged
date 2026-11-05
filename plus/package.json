@@ -30,6 +30,6 @@
     "vite-plugin-monkey": "^5.0.0"
   },
   "dependencies": {
-    "backloggd-i18n-ru": "file:../дипсик"
+    "backloggd-i18n-ru": "file:.."
   }
 }

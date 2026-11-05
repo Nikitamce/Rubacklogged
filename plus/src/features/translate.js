@@ -139,22 +139,38 @@ function ensureDescriptionButton() {
     el.remove();
   });
 
-  const existing = [...document.querySelectorAll(`.${BTN_CLASS}[data-blp-translate-kind="desc"]`)].filter(
+  const expand = document.getElementById('summary-expand-btn');
+  const slot = expand && !expand.closest('.review-card') ? expand.closest('.col-auto') : null;
+
+  // Clean up any extra or orphan desc slots or buttons in the summary container
+  const allDescButtons = [...document.querySelectorAll(`.${BTN_CLASS}[data-blp-translate-kind="desc"]`)].filter(
     (el) => !el.closest('.review-card')
   );
-  existing.slice(1).forEach((el) => {
-    el.closest('.blp-translate-desc-slot')?.remove();
-    el.remove();
-  });
-  if (existing[0]) return;
+  const allDescSlots = [...document.querySelectorAll('.blp-translate-desc-slot')].filter(
+    (el) => !el.closest('.review-card')
+  );
+
+  // If slot container already has a translate button or desc-slot right before it, keep it and remove duplicates
+  if (allDescSlots.length > 0 || allDescButtons.length > 0) {
+    allDescSlots.slice(1).forEach((el) => el.remove());
+    allDescButtons.slice(1).forEach((el) => {
+      el.closest('.blp-translate-desc-slot')?.remove();
+      el.remove();
+    });
+    // Already present and correctly placed
+    if (allDescButtons[0]?.isConnected || allDescSlots[0]?.isConnected) return;
+  }
+
+  // Double check parent row / slot
+  if (slot?.parentElement?.querySelector('.blp-translate-desc-slot, .blp-translate-btn[data-blp-translate-kind="desc"]')) {
+    return;
+  }
 
   const btn = makeButton('desc');
   const wrap = document.createElement('div');
   wrap.className = 'col-auto my-auto blp-translate-desc-slot';
   wrap.appendChild(btn);
 
-  const expand = document.getElementById('summary-expand-btn');
-  const slot = expand && !expand.closest('.review-card') ? expand.closest('.col-auto') : null;
   if (slot) {
     slot.insertAdjacentElement('beforebegin', wrap);
     return;
@@ -189,7 +205,7 @@ function ensureReviewButton(card) {
     const col = document.createElement('div');
     col.className = 'col-auto my-auto pr-1 blp-translate-review-slot';
     col.appendChild(btn);
-    const expand = bar.querySelector('.expand-review-col, a.review-more, #summary-expand-btn');
+    const expand = bar.querySelector('.expand-review-col, a.review-more');
     const expandCol = expand?.closest('.col, .col-auto');
     if (expandCol && bar.contains(expandCol)) expandCol.insertAdjacentElement('beforebegin', col);
     else bar.appendChild(col);
