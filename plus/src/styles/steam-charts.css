@@ -3,11 +3,19 @@
   margin-top: 0.5rem;
   margin-bottom: 0.75rem;
   width: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+[data-blp-enrich="steam"] .blp-chart-dropdown-row {
+  margin-top: 0.65rem;
+  margin-bottom: 0.65rem;
 }
 
 .blp-chart-dropdown-card {
   position: relative;
   overflow: hidden;
+  text-align: left;
   padding: 0.85rem 1rem !important;
   border-radius: 10px;
   border: 1px solid rgba(var(--blp-accent-rgb, 61, 184, 154), 0.3) !important;

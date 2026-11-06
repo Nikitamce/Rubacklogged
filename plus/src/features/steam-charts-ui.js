@@ -215,19 +215,17 @@ export function renderSvgChart(boxEl, points, isPrice = false) {
 }
 
 /**
- * Ensure dropdown chart container row exists below a parent row.
+ * Ensure dropdown chart container row exists below a target anchor element.
  */
-function ensureDropdownRow(parentRow, kind) {
+function ensureDropdownRow(anchorEl, kind) {
   const rowAttr = `data-blp-chart-row="${kind}"`;
-  let dropdown = parentRow.parentElement.querySelector(`[${rowAttr}]`);
-  if (dropdown) return dropdown;
-
-  dropdown = document.createElement('div');
-  dropdown.className = 'row blp-chart-dropdown-row';
-  dropdown.setAttribute('data-blp-chart-row', kind);
-  dropdown.hidden = true;
-  dropdown.innerHTML = `
-    <div class="col-12">
+  let dropdown = document.querySelector(`[${rowAttr}]`);
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.className = kind === 'price' ? 'blp-chart-dropdown-row' : 'row blp-chart-dropdown-row';
+    dropdown.setAttribute('data-blp-chart-row', kind);
+    dropdown.hidden = true;
+    const cardHtml = `
       <div class="blp-chart-dropdown-card">
         <div class="blp-chart-dropdown-graph" data-blp-graph-box>
           <div class="blp-charts-empty">
@@ -242,9 +240,13 @@ function ensureDropdownRow(parentRow, kind) {
           </a>
         </div>
       </div>
-    </div>
-  `;
-  parentRow.insertAdjacentElement('afterend', dropdown);
+    `;
+    dropdown.innerHTML = kind === 'price' ? cardHtml : `<div class="col-12">${cardHtml}</div>`;
+  }
+
+  if (dropdown.previousElementSibling !== anchorEl) {
+    anchorEl.insertAdjacentElement('afterend', dropdown);
+  }
   return dropdown;
 }
 
@@ -359,7 +361,7 @@ export function updateSteamPriceRowUi() {
   if (btn) {
     btn.onclick = () => {
       isPriceExpanded = !isPriceExpanded;
-      const dropdown = ensureDropdownRow(row, 'price');
+      const dropdown = ensureDropdownRow(firstLine, 'price');
       dropdown.hidden = !isPriceExpanded;
       updateSteamPriceRowUi();
       if (isPriceExpanded) {
@@ -375,7 +377,7 @@ export function updateSteamPriceRowUi() {
 
   // If already open, re-render chart points
   if (isPriceExpanded) {
-    const dropdown = ensureDropdownRow(row, 'price');
+    const dropdown = ensureDropdownRow(firstLine, 'price');
     dropdown.hidden = false;
     const graphBox = dropdown.querySelector('[data-blp-graph-box]');
     if (graphBox) renderSvgChart(graphBox, cachedPricePoints, true);
