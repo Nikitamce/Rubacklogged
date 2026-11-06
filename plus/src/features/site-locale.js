@@ -86,6 +86,8 @@ function createEngine(code, dict) {
     Playing: ['играет', 'играют', 'играют'],
     Followers: ['подписчик', 'подписчика', 'подписчиков'],
     Following: ['подписка', 'подписки', 'подписок'],
+    Logs: ['запись', 'записи', 'записей'],
+    Log: ['запись', 'записи', 'записей'],
   };
 
   function plural(n, forms) {
@@ -144,7 +146,7 @@ function createEngine(code, dict) {
     const folded = fold.get(text.toLowerCase());
     if (folded != null) return preserveEdges(raw, folded);
     if (!russian) return null;
-    const counted = text.match(/^([\d.,]+[KMBkmb]?)\s+(Likes|Like|Reviews|Review|Plays|Play|Lists|List|Games|Game|Comments|Comment|Ratings|Rating|Backlogs|Wishlists|Playing|Followers|Following)$/);
+    const counted = text.match(/^([\d.,]+[KMBkmb]?)\s+(Likes|Like|Reviews|Review|Plays|Play|Lists|List|Games|Game|Comments|Comment|Ratings|Rating|Backlogs|Wishlists|Playing|Followers|Following|Logs|Log)$/);
     if (counted) {
       const next = countRepl(counted[1], counted[2]);
       if (next) return preserveEdges(raw, next);
