@@ -1643,6 +1643,11 @@
     'Show in': 'Показать в',
     'Show in Time Tracker': 'Показать в учёте времени',
     'Show in time tracker': 'Показать в учёте времени',
+    'Games Played': 'Сыграно игр',
+    'Total Games Played': 'Всего сыграно игр',
+    'games played': 'сыграно игр',
+    'Report / Block': 'Пожаловаться / Заблокировать',
+    'Report / block': 'Пожаловаться / заблокировать',
     'Time played': 'Время в игре',
     'Time to finish': 'Время на прохождение',
     'Time to master': 'Время на мастерство',
@@ -3276,6 +3281,25 @@
     'Liked 50+ reviews / lists': 'Поставлено 50+ лайков рецензиям / спискам',
     'Voted for at least 3 features on the roadmap': 'Голос минимум за 3 функции в планах развития',
     'Mentioned by another user': 'Упоминание другим пользователем',
+    'Gained 10+ total review likes': 'Получено 10+ лайков к рецензиям',
+    'Gained 100+ total review likes': 'Получено 100+ лайков к рецензиям',
+    'Gained 300+ total review likes': 'Получено 300+ лайков к рецензиям',
+    'Gained 750+ total review likes': 'Получено 750+ лайков к рецензиям',
+    'Played 50+ games': 'Сыграно 50+ игр',
+    'Played 200+ games': 'Сыграно 200+ игр',
+    'Played 400+ games': 'Сыграно 400+ игр',
+    'Played 800+ games': 'Сыграно 800+ игр',
+    'Gained 3+ followers': 'Получено 3+ подписчиков',
+    'Gained 15+ followers': 'Получено 15+ подписчиков',
+    'Gained 50+ followers': 'Получено 50+ подписчиков',
+    'Gained 100+ followers': 'Получено 100+ подписчиков',
+    'Gained 10+ likes on a single review': 'Получено 10+ лайков на одной рецензии',
+    'Journaled games once a day for a week straight': 'Записи в журнале каждый день неделю подряд',
+    'Journaled 5+ games in a single day': 'Записано 5+ игр за один день',
+    'Created 10+ public lists': 'Создано 10+ публичных списков',
+    'Become mutual friends with at least 3 others': 'Взаимная дружба как минимум с 3 пользователями',
+    'Created a list folder with 5+ lists': 'Создана папка с 5+ списками',
+    'Received 5+ likes on a review while featured on the front page': 'Получено 5+ лайков на рецензию на главной странице',
     'Get 10+ likes on your reviews': 'Получите 10+ лайков к вашим рецензиям',
     'Get 100+ likes on your reviews': 'Получите 100+ лайков к вашим рецензиям',
     'Get 300+ likes on your reviews': 'Получите 300+ лайков к вашим рецензиям',
@@ -3634,6 +3658,72 @@
       // "Participated in the 2007 Replay Event"
       re: /^Participated in the (\d{4}) Replay Event$/i,
       replace: (match, year) => `Участие в событии «Повтор ${year}»`,
+    },
+    {
+      // "in addition to 20 extras"
+      re: /^in addition to (\d+)\s+extras?$/i,
+      replace: (match, rawCount) => {
+        const count = Number(rawCount);
+        return `в дополнение к ${count} ${plural(count, ['доп. материалу', 'доп. материалам', 'доп. материалам'])}`;
+      },
+    },
+    {
+      // "• 13 Seasons", "3 Expansions", "2 DLC", "1 Update", "1 Episode"
+      re: /^([•·*]\s*)?(\d+)\s+(Seasons?|Expansions?|DLCs?|Updates?|Episodes?|Standalone Expansions?|Mods?|Remakes?|Remasters?|Ports?|Bundles?|Packs?)$/i,
+      replace: (match, bullet = '', rawCount, type) => {
+        const count = Number(rawCount);
+        const map = {
+          season: ['сезон', 'сезона', 'сезонов'],
+          seasons: ['сезон', 'сезона', 'сезонов'],
+          expansion: ['дополнение', 'дополнения', 'дополнений'],
+          expansions: ['дополнение', 'дополнения', 'дополнений'],
+          dlc: ['DLC', 'DLC', 'DLC'],
+          dlcs: ['DLC', 'DLC', 'DLC'],
+          update: ['обновление', 'обновления', 'обновлений'],
+          updates: ['обновление', 'обновления', 'обновлений'],
+          episode: ['эпизод', 'эпизода', 'эпизодов'],
+          episodes: ['эпизод', 'эпизода', 'эпизодов'],
+          'standalone expansion': ['самостоятельное дополнение', 'самостоятельных дополнения', 'самостоятельных дополнений'],
+          'standalone expansions': ['самостоятельное дополнение', 'самостоятельных дополнения', 'самостоятельных дополнений'],
+          mod: ['мод', 'мода', 'модов'],
+          mods: ['мод', 'мода', 'модов'],
+          remake: ['ремейк', 'ремейка', 'ремейков'],
+          remakes: ['ремейк', 'ремейка', 'ремейков'],
+          remaster: ['ремастер', 'ремастера', 'ремастеров'],
+          remasters: ['ремастер', 'ремастера', 'ремастеров'],
+          port: ['порт', 'порта', 'портов'],
+          ports: ['порт', 'порта', 'портов'],
+          bundle: ['набор', 'набора', 'наборов'],
+          bundles: ['набор', 'набора', 'наборов'],
+          pack: ['пак', 'пака', 'паков'],
+          packs: ['пак', 'пака', 'паков'],
+        };
+        const forms = map[type.toLowerCase()] || [type, type, type];
+        return `${bullet}${count} ${plural(count, forms)}`;
+      },
+    },
+    {
+      // "Gained 10+ total review likes"
+      re: /^Gained\s+(\d+)\+?\s+total\s+review\s+likes$/i,
+      replace: (match, n) => `Получено ${n}+ лайков к рецензиям`,
+    },
+    {
+      // "Played 50+ games"
+      re: /^Played\s+(\d+)\+?\s+games$/i,
+      replace: (match, n) => `Сыграно ${n}+ игр`,
+    },
+    {
+      // "Gained 3+ followers"
+      re: /^Gained\s+(\d+)\+?\s+followers$/i,
+      replace: (match, n) => {
+        const count = Number(n);
+        return `Получено ${n}+ ${plural(count, ['подписчик', 'подписчика', 'подписчиков'])}`;
+      },
+    },
+    {
+      // "Gained 10+ likes on a single review"
+      re: /^Gained\s+(\d+)\+?\s+likes\s+on\s+a\s+single\s+review$/i,
+      replace: (match, n) => `Получено ${n}+ лайков на одной рецензии`,
     },
   ];
 

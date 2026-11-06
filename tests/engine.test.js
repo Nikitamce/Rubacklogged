@@ -84,6 +84,17 @@ test('applies context-specific wording', () => {
   assert.equal(translator.translate('on'), null);
   assert.equal(translator.translate('Completed on PlayStation 5'), 'Пройдено на PlayStation 5');
   assert.equal(translator.translate('Played on PC (Windows)'), 'Сыграно на PC (Windows)');
+  assert.equal(translator.translate('Games Played'), 'Сыграно игр');
+  assert.equal(translator.translate('Report / Block'), 'Пожаловаться / Заблокировать');
+  assert.equal(translator.translate('in addition to 20 extras'), 'в дополнение к 20 доп. материалам');
+  assert.equal(translator.translate('• 13 Seasons'), '• 13 сезонов');
+  assert.equal(translator.translate('3 Expansions'), '3 дополнения');
+  assert.equal(translator.translate('2 DLC'), '2 DLC');
+  assert.equal(translator.translate('1 Update'), '1 обновление');
+  assert.equal(translator.translate('1 Episode'), '1 эпизод');
+  assert.equal(translator.translate('Gained 10+ total review likes'), 'Получено 10+ лайков к рецензиям');
+  assert.equal(translator.translate('Played 50+ games'), 'Сыграно 50+ игр');
+  assert.equal(translator.translate('Gained 3+ followers'), 'Получено 3+ подписчиков');
 });
 
 test('pluralizes counts', () => {

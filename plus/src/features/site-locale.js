@@ -275,6 +275,56 @@ function createEngine(code, dict) {
     }
     const replayDesc = text.match(/^Participated in the (\d{4}) Replay Event$/i);
     if (replayDesc) return preserveEdges(raw, `Участие в событии «Повтор ${replayDesc[1]}»`);
+    const extrasHead = text.match(/^in addition to (\d+)\s+extras?$/i);
+    if (extrasHead) {
+      const n = Number(extrasHead[1]);
+      return preserveEdges(raw, `в дополнение к ${n} ${plural(n, ['доп. материалу', 'доп. материалам', 'доп. материалам'])}`);
+    }
+    const extraItem = text.match(/^([•·*]\s*)?(\d+)\s+(Seasons?|Expansions?|DLCs?|Updates?|Episodes?|Standalone Expansions?|Mods?|Remakes?|Remasters?|Ports?|Bundles?|Packs?)$/i);
+    if (extraItem) {
+      const bullet = extraItem[1] || '';
+      const n = Number(extraItem[2]);
+      const type = extraItem[3].toLowerCase();
+      const map = {
+        season: ['сезон', 'сезона', 'сезонов'],
+        seasons: ['сезон', 'сезона', 'сезонов'],
+        expansion: ['дополнение', 'дополнения', 'дополнений'],
+        expansions: ['дополнение', 'дополнения', 'дополнений'],
+        dlc: ['DLC', 'DLC', 'DLC'],
+        dlcs: ['DLC', 'DLC', 'DLC'],
+        update: ['обновление', 'обновления', 'обновлений'],
+        updates: ['обновление', 'обновления', 'обновлений'],
+        episode: ['эпизод', 'эпизода', 'эпизодов'],
+        episodes: ['эпизод', 'эпизода', 'эпизодов'],
+        'standalone expansion': ['самостоятельное дополнение', 'самостоятельных дополнения', 'самостоятельных дополнений'],
+        'standalone expansions': ['самостоятельное дополнение', 'самостоятельных дополнения', 'самостоятельных дополнений'],
+        mod: ['мод', 'мода', 'модов'],
+        mods: ['мод', 'мода', 'модов'],
+        remake: ['ремейк', 'ремейка', 'ремейков'],
+        remakes: ['ремейк', 'ремейка', 'ремейков'],
+        remaster: ['ремастер', 'ремастера', 'ремастеров'],
+        remasters: ['ремастер', 'ремастера', 'ремастеров'],
+        port: ['порт', 'порта', 'портов'],
+        ports: ['порт', 'порта', 'портов'],
+        bundle: ['набор', 'набора', 'наборов'],
+        bundles: ['набор', 'набора', 'наборов'],
+        pack: ['пак', 'пака', 'паков'],
+        packs: ['пак', 'пака', 'паков'],
+      };
+      const forms = map[type] || [type, type, type];
+      return preserveEdges(raw, `${bullet}${n} ${plural(n, forms)}`);
+    }
+    const revLikes = text.match(/^Gained\s+(\d+)\+?\s+total\s+review\s+likes$/i);
+    if (revLikes) return preserveEdges(raw, `Получено ${revLikes[1]}+ лайков к рецензиям`);
+    const playedGames = text.match(/^Played\s+(\d+)\+?\s+games$/i);
+    if (playedGames) return preserveEdges(raw, `Сыграно ${playedGames[1]}+ игр`);
+    const gainedFollowers = text.match(/^Gained\s+(\d+)\+?\s+followers$/i);
+    if (gainedFollowers) {
+      const n = Number(gainedFollowers[1]);
+      return preserveEdges(raw, `Получено ${n}+ ${plural(n, ['подписчик', 'подписчика', 'подписчиков'])}`);
+    }
+    const singleRevLikes = text.match(/^Gained\s+(\d+)\+?\s+likes\s+on\s+a\s+single\s+review$/i);
+    if (singleRevLikes) return preserveEdges(raw, `Получено ${singleRevLikes[1]}+ лайков на одной рецензии`);
     if (/^[‹«<]\s*Prev$/i.test(text)) return preserveEdges(raw, '‹ Назад');
     if (/^Next\s*[›»>]$/i.test(text)) return preserveEdges(raw, 'Далее ›');
     return null;
