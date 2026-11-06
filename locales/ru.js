@@ -3214,6 +3214,11 @@
     'Created on': 'Создано',
     'Updated on': 'Обновлено',
     'Released on': 'Выпущено',
+    'How are you liking the new badge designs?': 'Как вам новый дизайн значков?',
+    'How are you liking the new badge design?': 'Как вам новый дизайн значков?',
+    'How are you liking the new badges?': 'Как вам новые значки?',
+    'Thanks for your feedback!': 'Спасибо за отзыв!',
+    'Thank you for your feedback!': 'Спасибо за ваш отзыв!',
 
     // Document titles
     'Backloggd - A Video Game Collection Tracker': 'Backloggd — трекер игровой коллекции',
@@ -3475,8 +3480,16 @@
     {
       // "View my 'Game' stats"
       re: /^View my (.+?) stats$/i,
-      re: /^View my (.+?) stats$/i,
       replace: (match, game) => `Посмотреть мою статистику по ${game}`,
+    },
+    {
+      // Survey: "How are you liking the new badge designs?"
+      re: /^How are you liking (.+?)\?$/i,
+      replace: (match, topic) => {
+        if (/badge designs?/i.test(topic)) return 'Как вам новый дизайн значков?';
+        if (/badges?/i.test(topic)) return 'Как вам новые значки?';
+        return `Как вам ${topic}?`;
+      },
     },
   ];
 

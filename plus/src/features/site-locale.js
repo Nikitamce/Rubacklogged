@@ -218,6 +218,12 @@ function createEngine(code, dict) {
       const datePart = translateText(earned[2], el) || earned[2];
       return preserveEdges(raw, `${verb} ${datePart}`);
     }
+    const liking = text.match(/^How are you liking (.+?)\?$/i);
+    if (liking) {
+      if (/badge designs?/i.test(liking[1])) return preserveEdges(raw, 'Как вам новый дизайн значков?');
+      if (/badges?/i.test(liking[1])) return preserveEdges(raw, 'Как вам новые значки?');
+      return preserveEdges(raw, `Как вам ${liking[1]}?`);
+    }
     if (/^[‹«<]\s*Prev$/i.test(text)) return preserveEdges(raw, '‹ Назад');
     if (/^Next\s*[›»>]$/i.test(text)) return preserveEdges(raw, 'Далее ›');
     return null;

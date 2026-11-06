@@ -131,6 +131,7 @@ test('formats dates', () => {
   assert.equal(translator.translate('No play sessions logged'), 'Нет записанных игровых сессий');
   assert.equal(translator.translate('First Time'), 'Первое прохождение');
   assert.equal(translator.translate('Replay'), 'Повторное прохождение');
+  assert.equal(translator.translate('How are you liking the new badge designs?'), 'Как вам новый дизайн значков?');
   assert.equal(translator.translate('Avg 3.5★'), 'Ср. 3,5★');
 });
 
