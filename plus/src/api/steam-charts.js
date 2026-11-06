@@ -23,8 +23,15 @@ export async function fetchSteamChartsData(appId) {
 
   const cacheKey = steamChartsCacheKey(id);
   const cached = getCached(cacheKey);
-  if (Array.isArray(cached) && cached.length) {
-    return asCacheHit(cached);
+  if (cached) {
+    if (Array.isArray(cached) && cached.length) {
+      let maxPeak = 0;
+      for (const p of cached) if (p[1] > maxPeak) maxPeak = p[1];
+      return asCacheHit({ points: cached, allTimePeak: maxPeak });
+    }
+    if (cached.points) {
+      return asCacheHit(cached);
+    }
   }
 
   if (inflight.has(cacheKey)) return inflight.get(cacheKey);
@@ -58,11 +65,18 @@ export async function fetchSteamChartsData(appId) {
 
       // Filter last 6 months (180 days)
       const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
+      let allTimePeak = 0;
+      for (const pt of raw) {
+        if (Array.isArray(pt) && typeof pt[1] === 'number' && pt[1] > allTimePeak) {
+          allTimePeak = Math.round(pt[1]);
+        }
+      }
+
       let filtered = raw
         .filter((pt) => Array.isArray(pt) && pt.length >= 2 && pt[0] >= sixMonthsAgo && typeof pt[1] === 'number')
         .map((pt) => [pt[0], Math.round(pt[1])]);
 
-      // If filtered is empty but raw has recent data, take last 50 points
+      // If filtered is empty but raw has recent data, take last 60 points
       if (!filtered.length && raw.length) {
         filtered = raw
           .filter((pt) => Array.isArray(pt) && pt.length >= 2 && typeof pt[1] === 'number')
@@ -70,13 +84,18 @@ export async function fetchSteamChartsData(appId) {
           .map((pt) => [pt[0], Math.round(pt[1])]);
       }
 
-      if (filtered.length) {
-        setCached(cacheKey, filtered, { ttlMs: STEAMCHARTS_TTL_MS });
+      const result = {
+        points: filtered,
+        allTimePeak,
+      };
+
+      if (filtered.length || allTimePeak > 0) {
+        setCached(cacheKey, result, { ttlMs: STEAMCHARTS_TTL_MS });
       }
-      return asCacheMiss(filtered);
+      return asCacheMiss(result);
     } catch (err) {
       console.warn('[Backloggd Plus] Failed to fetch steamcharts:', err);
-      return asCacheMiss([]);
+      return asCacheMiss({ points: [], allTimePeak: 0 });
     }
   })();
 

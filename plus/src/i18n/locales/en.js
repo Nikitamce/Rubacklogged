@@ -280,6 +280,10 @@ export default {
   steamChartsNoData: 'No chart data available',
   steamChartsExpand: 'Show chart',
   steamChartsCollapse: 'Hide chart',
+  steamChartsShowChart: 'Show chart',
+  steamChartsHideChart: 'Hide chart',
+  steamChartsAllTimePeak: 'peak: {n}',
+  steamChartsPriceChart: 'Price chart',
   showSteamDbDetails: 'Show SteamDB details',
   showSteamDbDetailsHint:
     'One SteamDB row: franchise and systems from Steam; technologies and last record update from SteamDB when reachable.',

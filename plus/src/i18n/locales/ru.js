@@ -280,6 +280,10 @@ export default {
   steamChartsNoData: 'Нет данных для отображения графика',
   steamChartsExpand: 'Показать график',
   steamChartsCollapse: 'Скрыть график',
+  steamChartsShowChart: 'Показать график',
+  steamChartsHideChart: 'Скрыть график',
+  steamChartsAllTimePeak: 'пик: {n}',
+  steamChartsPriceChart: 'График цен',
   showSteamDbDetails: 'Показывать детали SteamDB',
   showSteamDbDetailsHint:
     'Один ряд SteamDB: франшиза и системы из Steam; технологии и последнее обновление записи — со SteamDB, если страница доступна.',

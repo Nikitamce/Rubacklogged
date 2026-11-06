@@ -50,7 +50,7 @@ import {
 import { syncExportButton, removeExportUi } from './export-game.js';
 import { readBackloggdGameId, removeGameIdUi, syncGameIdUi } from './game-id.js';
 import { ensureUnifiedRatingWidget, updateUnifiedRatingWidget } from './unified-rating.js';
-import { applySteamChartsData, ensureSteamChartsMount, removeSteamChartsWidget } from './steam-charts-ui.js';
+import { applySteamChartsData, removeSteamChartsWidget } from './steam-charts-ui.js';
 import { getIgdbUrl, getPageContext, getGameTitle } from './page.js';
 import { cacheSourceLabel, paintDebugCacheMark } from './debug-cache.js';
 
@@ -572,6 +572,7 @@ export function customLinksNeedSteam(cfg = settings) {
 export function removeEnrichment() {
   document.querySelectorAll(`[${ENRICH_ATTR}]`).forEach((el) => el.remove());
   document.querySelectorAll('[data-blp-debug]').forEach((el) => el.remove());
+  removeSteamChartsWidget();
   removeSteamDbUi();
   removeExportUi({ includeLogEditor: false });
   removeGameIdUi();
@@ -1300,7 +1301,6 @@ export async function enrichGamePage() {
   // skeletons remain caused OpenCritic/HLTB/etc. to flicker on every MutationObserver pass.
   if (marker?.getAttribute('data-blp-token') === token) {
     ensureUnifiedRatingWidget(token);
-    ensureSteamChartsMount(token);
     applyGameStatsVisibility();
     bindGameCoverViewer();
     syncExportButton(token);
@@ -1315,7 +1315,6 @@ export async function enrichGamePage() {
 
   Object.values(rows).forEach((row) => row?.setAttribute('data-blp-token', token));
   ensureUnifiedRatingWidget(token);
-  ensureSteamChartsMount(token);
   applyGameStatsVisibility();
   bindGameCoverViewer();
 

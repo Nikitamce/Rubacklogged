@@ -6,18 +6,14 @@ import {
   recordLocalPriceSnapshot,
 } from '../api/steam-charts.js';
 import { getFxRate, formatMoneyMajor, CURRENCY_SYMBOLS } from '../api/fx.js';
-import { FAVICON_URL, STEAMDB_APP_URL } from '../constants.js';
+import { STEAMDB_APP_URL } from '../constants.js';
 import { settings, t } from '../state.js';
 import { escapeAttr, escapeHtml } from '../utils/html.js';
-import { gameStatsMountAnchor } from './steamdb-ui.js';
+import { fmt } from '../i18n.js';
 
-function favicon(domain) {
-  return FAVICON_URL.replace('{domain}', encodeURIComponent(domain));
-}
-
-const CHARTS_ATTR = 'data-blp-charts';
-let currentTab = 'online'; // 'online' | 'price'
+// State caches
 let cachedOnlinePoints = [];
+let cachedOnlinePeak = 0;
 let cachedPricePoints = [];
 let cachedAppId = null;
 let cachedCurrentPlayers = null;
@@ -25,213 +21,38 @@ let cachedPriceOverview = null;
 let cachedItadPrice = null;
 let cachedConvertedLowest = null;
 
-let isGraphExpanded = false; // Collapsed by default (only header & 3 metric blocks visible)
-
-export function chartsMountAnchor() {
-  const unifiedRow = document.querySelector('.blp-unified-rating-row');
-  if (unifiedRow) return unifiedRow;
-  return gameStatsMountAnchor();
-}
+let isOnlineExpanded = false;
+let isPriceExpanded = false;
 
 export function removeSteamChartsWidget() {
-  document.querySelectorAll(`[${CHARTS_ATTR}]`).forEach((el) => el.remove());
+  document.querySelectorAll('.blp-chart-dropdown-row').forEach((el) => el.remove());
 }
 
-export function ensureSteamChartsMount(token = '') {
-  if (settings.showSteamCharts === false) {
-    removeSteamChartsWidget();
-    return null;
-  }
-
-  let row = document.querySelector(`.blp-charts-row[${CHARTS_ATTR}]`);
-  const anchor = chartsMountAnchor();
-  if (!anchor) return null;
-
-  if (row) {
-    if (token) row.setAttribute('data-blp-token', token);
-    return row;
-  }
-
-  row = document.createElement('div');
-  row.className = 'row blp-charts-row';
-  row.setAttribute(CHARTS_ATTR, '1');
-  if (token) row.setAttribute('data-blp-token', token);
-
-  row.innerHTML = `
-    <div class="col">
-      <div class="backloggd-container center-container blp-charts-card ${isGraphExpanded ? '' : 'is-collapsed'}">
-        <div class="blp-charts-header">
-          <div class="blp-charts-title-wrap">
-            <img class="blp-charts-icon" src="${favicon('steamdb.info')}" alt="" />
-            <h3 class="blp-charts-title">${escapeHtml(t.steamChartsTitle)}</h3>
-          </div>
-          <div class="blp-charts-header-right">
-            <div class="blp-charts-tabs">
-              <button type="button" class="blp-charts-tab ${currentTab === 'online' ? 'is-active' : ''}" data-blp-tab="online">
-                ${escapeHtml(t.steamChartsTabOnline)}
-              </button>
-              <button type="button" class="blp-charts-tab ${currentTab === 'price' ? 'is-active' : ''}" data-blp-tab="price">
-                ${escapeHtml(t.steamChartsTabPrice)}
-              </button>
-            </div>
-            <button type="button" class="blp-charts-toggle-btn" data-blp-toggle-btn title="${escapeHtml(isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand)}">
-              <span data-blp-toggle-text>${escapeHtml(isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand)}</span>
-              <svg class="blp-charts-toggle-icon" viewBox="0 0 24 24">
-                <path d="M7 10l5 5 5-5z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="blp-charts-metrics" data-blp-metrics>
-          <!-- Injected via renderMetrics() -->
-        </div>
-
-        <div class="blp-charts-collapsible" data-blp-collapsible>
-          <div class="blp-charts-graph-box" data-blp-graph-box>
-            <div class="blp-charts-empty">
-              <span class="blp-skeleton" style="width: 80%; height: 12px; border-radius: 4px;"></span>
-            </div>
-            <div class="blp-charts-tooltip" data-blp-tooltip></div>
-          </div>
-
-          <div class="blp-charts-footer">
-            <span data-blp-footer-note>${escapeHtml(t.steamChartsOnline6m)}</span>
-            <a class="blp-charts-btn-steamdb" data-blp-steamdb-link href="${STEAMDB_APP_URL}/" target="_blank" rel="noopener noreferrer">
-              ${escapeHtml(t.steamChartsOpenSteamDb)} ↗
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Insert right below unified rating (or before game-stats)
-  anchor.insertAdjacentElement('afterend', row);
-
-  // Toggle button event
-  const card = row.querySelector('.blp-charts-card');
-  const toggleBtn = row.querySelector('[data-blp-toggle-btn]');
-  const toggleText = row.querySelector('[data-blp-toggle-text]');
-
-  if (toggleBtn && card) {
-    toggleBtn.addEventListener('click', () => {
-      isGraphExpanded = !isGraphExpanded;
-      card.classList.toggle('is-collapsed', !isGraphExpanded);
-      if (toggleText) {
-        toggleText.textContent = isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand;
-      }
-      toggleBtn.title = isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand;
-
-      if (isGraphExpanded) {
-        renderCurrentTab(row);
-      }
-    });
-  }
-
-  // Tab switching events
-  row.querySelectorAll('.blp-charts-tab').forEach((tabBtn) => {
-    tabBtn.addEventListener('click', () => {
-      const tab = tabBtn.getAttribute('data-blp-tab');
-      if (tab === currentTab) return;
-      currentTab = tab;
-      row.querySelectorAll('.blp-charts-tab').forEach((btn) => {
-        btn.classList.toggle('is-active', btn.getAttribute('data-blp-tab') === currentTab);
-      });
-      renderCurrentTab(row);
-    });
-  });
-
-  return row;
-}
-
-function formatNumber(num) {
+export function formatNumber(num) {
   if (num == null || isNaN(num)) return '—';
   return Number(num).toLocaleString('ru-RU');
 }
 
-function formatDate(ts) {
+export function formatDate(ts) {
   const d = new Date(ts);
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function renderMetrics(row) {
-  const container = row.querySelector('[data-blp-metrics]');
-  if (!container) return;
-
-  if (currentTab === 'online') {
-    const points = cachedOnlinePoints;
-    let peak = 0;
-    let sum = 0;
-    for (const pt of points) {
-      if (pt[1] > peak) peak = pt[1];
-      sum += pt[1];
-    }
-    const avg = points.length ? Math.round(sum / points.length) : 0;
-    const current = cachedCurrentPlayers != null ? cachedCurrentPlayers : (points.length ? points[points.length - 1][1] : 0);
-
-    container.innerHTML = `
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsCurrentPlayers)}</span>
-        <span class="blp-charts-metric-val blp-charts-metric-val--accent">${formatNumber(current)}</span>
-      </div>
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsPeak6m)}</span>
-        <span class="blp-charts-metric-val">${formatNumber(peak)}</span>
-      </div>
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsAvg6m)}</span>
-        <span class="blp-charts-metric-val">${formatNumber(avg)}</span>
-      </div>
-    `;
-  } else {
-    // Price Tab
-    const currentPrice = cachedPriceOverview?.final_formatted || (cachedPriceOverview?.final ? `${(cachedPriceOverview.final / 100).toFixed(2)} ${cachedPriceOverview.currency || ''}` : '—');
-    const discount = cachedPriceOverview?.discount_percent ? `-${cachedPriceOverview.discount_percent}%` : '0%';
-    
-    let lowest = '—';
-    if (cachedItadPrice?.lowest?.price?.amount != null) {
-      const amt = cachedItadPrice.lowest.price.amount;
-      const cur = cachedItadPrice.lowest.price.currency;
-      if (cachedConvertedLowest) {
-        lowest = `${cachedConvertedLowest} <span style="font-size: 0.75rem; opacity: 0.7; font-weight: normal">(${amt} ${cur})</span>`;
-      } else {
-        lowest = `${amt} ${cur}`;
-      }
-    }
-
-    container.innerHTML = `
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsCurrentPrice)}</span>
-        <span class="blp-charts-metric-val blp-charts-metric-val--blue">${escapeHtml(currentPrice)}</span>
-      </div>
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsDiscount)}</span>
-        <span class="blp-charts-metric-val">${escapeHtml(discount)}</span>
-      </div>
-      <div class="blp-charts-metric-tile">
-        <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsLowestPrice)}</span>
-        <span class="blp-charts-metric-val">${lowest}</span>
-      </div>
-    `;
-  }
-}
-
-function renderSvgChart(boxEl, points, isPrice = false) {
+export function renderSvgChart(boxEl, points, isPrice = false) {
   if (!points || points.length < 2) {
-    boxEl.innerHTML = `<div class="blp-charts-empty">${escapeHtml(t.steamChartsNoData)}</div>`;
+    boxEl.innerHTML = `<div class="blp-charts-empty">${escapeHtml(t.steamChartsNoData || 'Нет данных для отображения графика')}</div>`;
     return;
   }
 
   const width = boxEl.clientWidth || 600;
-  const height = boxEl.clientHeight || 220;
+  const height = boxEl.clientHeight || 200;
   const padLeft = 45;
   const padRight = 20;
-  const padTop = 20;
-  const padBottom = 28;
+  const padTop = 15;
+  const padBottom = 26;
 
-  const chartW = width - padLeft - padRight;
-  const chartH = height - padTop - padBottom;
+  const chartW = Math.max(10, width - padLeft - padRight);
+  const chartH = Math.max(10, height - padTop - padBottom);
 
   let minX = points[0][0];
   let maxX = points[points.length - 1][0];
@@ -247,25 +68,22 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     minY = Math.max(0, minY - 10);
     maxY = maxY + 10;
   } else {
-    // Add small headroom
     const range = maxY - minY;
     minY = Math.max(0, Math.floor(minY - range * 0.05));
     maxY = Math.ceil(maxY + range * 0.08);
   }
 
-  const getX = (t) => padLeft + ((t - minX) / (maxX - minX)) * chartW;
-  const getY = (v) => padTop + chartH - ((v - minY) / (maxY - minY)) * chartH;
+  const getX = (time) => padLeft + ((time - minX) / (maxX - minX || 1)) * chartW;
+  const getY = (val) => padTop + chartH - ((val - minY) / (maxY - minY || 1)) * chartH;
 
   // Build SVG path
   let pathD = `M ${getX(points[0][0])},${getY(points[0][1])}`;
   for (let i = 1; i < points.length; i++) {
-    const prevX = getX(points[i - 1][0]);
     const prevY = getY(points[i - 1][1]);
     const curX = getX(points[i][0]);
     const curY = getY(points[i][1]);
 
     if (isPrice) {
-      // Stepped horizontal line from prevX to curX, then vertical drop/jump to curY
       pathD += ` L ${curX},${prevY} L ${curX},${curY}`;
     } else {
       pathD += ` L ${curX},${curY}`;
@@ -274,7 +92,7 @@ function renderSvgChart(boxEl, points, isPrice = false) {
 
   const areaD = `${pathD} L ${getX(points[points.length - 1][0])},${padTop + chartH} L ${getX(points[0][0])},${padTop + chartH} Z`;
 
-  // Generate 4 horizontal grid lines
+  // Grid lines (4 lines)
   const gridLines = [];
   for (let i = 0; i <= 3; i++) {
     const val = Math.round(minY + ((maxY - minY) * i) / 3);
@@ -285,27 +103,26 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     `);
   }
 
-  // Generate 3 date labels
+  // Date labels
   const dateLabels = [
     { t: minX, x: padLeft, anchor: 'start' },
     { t: (minX + maxX) / 2, x: padLeft + chartW / 2, anchor: 'middle' },
     { t: maxX, x: width - padRight, anchor: 'end' },
-  ].map((d) => `<text x="${d.x}" y="${height - 8}" text-anchor="${d.anchor}" class="blp-charts-axis-text">${formatDate(d.t)}</text>`);
+  ].map((d) => `<text x="${d.x}" y="${height - 6}" text-anchor="${d.anchor}" class="blp-charts-axis-text">${formatDate(d.t)}</text>`);
 
-  const gradientId = isPrice ? 'blp-chart-gradient-price' : 'blp-chart-gradient-online';
-  const strokeColor = isPrice ? '#66c0f4' : 'var(--blp-accent, #3db89a)';
   const areaClass = isPrice ? 'blp-charts-area blp-charts-area--price' : 'blp-charts-area';
   const lineClass = isPrice ? 'blp-charts-line blp-charts-line--price' : 'blp-charts-line';
+  const strokeColor = isPrice ? '#66c0f4' : 'var(--blp-accent, #3db89a)';
 
   boxEl.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
       <defs>
         <linearGradient id="blp-chart-gradient-online" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.5" />
+          <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.45" />
           <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0" />
         </linearGradient>
         <linearGradient id="blp-chart-gradient-price" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#66c0f4" stop-opacity="0.5" />
+          <stop offset="0%" stop-color="#66c0f4" stop-opacity="0.45" />
           <stop offset="100%" stop-color="#66c0f4" stop-opacity="0.0" />
         </linearGradient>
       </defs>
@@ -319,8 +136,7 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     <div class="blp-charts-tooltip" data-blp-tooltip></div>
   `;
 
-  // Attach hover interaction
-  const svg = boxEl.querySelector('svg');
+  // Interaction
   const cursorLine = boxEl.querySelector('.blp-charts-cursor-line');
   const cursorDot = boxEl.querySelector('.blp-charts-cursor-dot');
   const tooltip = boxEl.querySelector('[data-blp-tooltip]');
@@ -344,7 +160,6 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     let tooltipDate = 0;
 
     if (isPrice) {
-      // In a stepped chart, the value at targetT is the value of the latest segment before or at targetT
       let activePoint = points[0];
       for (let i = 0; i < points.length; i++) {
         if (points[i][0] <= targetT) {
@@ -385,7 +200,9 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     tooltip.style.top = `${cy}px`;
     tooltip.style.display = 'block';
 
-    const unit = isPrice ? (cachedPriceOverview?.currency ? ` ${CURRENCY_SYMBOLS[cachedPriceOverview.currency] || cachedPriceOverview.currency}` : '') : ` ${t.players || 'игроков'}`;
+    const unit = isPrice
+      ? (cachedPriceOverview?.currency ? ` ${CURRENCY_SYMBOLS[cachedPriceOverview.currency] || cachedPriceOverview.currency}` : '')
+      : ` ${t.players || 'игроков'}`;
     tooltip.innerHTML = `<strong>${formatNumber(tooltipVal)}${unit}</strong><br><span style="opacity:0.75">${formatDate(tooltipDate)}</span>`;
   };
 
@@ -397,47 +214,195 @@ function renderSvgChart(boxEl, points, isPrice = false) {
   });
 }
 
-function renderCurrentTab(row) {
-  renderMetrics(row);
-  const graphBox = row.querySelector('[data-blp-graph-box]');
-  const footerNote = row.querySelector('[data-blp-footer-note]');
-  if (!graphBox) return;
+/**
+ * Ensure dropdown chart container row exists below a parent row.
+ */
+function ensureDropdownRow(parentRow, kind) {
+  const rowAttr = `data-blp-chart-row="${kind}"`;
+  let dropdown = parentRow.parentElement.querySelector(`[${rowAttr}]`);
+  if (dropdown) return dropdown;
 
-  if (currentTab === 'online') {
-    if (footerNote) footerNote.textContent = t.steamChartsOnline6m;
-    renderSvgChart(graphBox, cachedOnlinePoints, false);
-  } else {
-    if (footerNote) footerNote.textContent = t.steamChartsPriceHistoryNotice;
-    renderSvgChart(graphBox, cachedPricePoints, true);
+  dropdown = document.createElement('div');
+  dropdown.className = 'row blp-chart-dropdown-row';
+  dropdown.setAttribute('data-blp-chart-row', kind);
+  dropdown.hidden = true;
+  dropdown.innerHTML = `
+    <div class="col-12">
+      <div class="blp-chart-dropdown-card">
+        <div class="blp-chart-dropdown-graph" data-blp-graph-box>
+          <div class="blp-charts-empty">
+            <span class="blp-skeleton" style="width: 80%; height: 12px; border-radius: 4px;"></span>
+          </div>
+          <div class="blp-charts-tooltip" data-blp-tooltip></div>
+        </div>
+        <div class="blp-chart-dropdown-footer">
+          <span class="blp-chart-dropdown-notice" data-blp-footer-note></span>
+          <a class="blp-charts-btn-steamdb" data-blp-steamdb-link href="${STEAMDB_APP_URL}/" target="_blank" rel="noopener noreferrer">
+            ${escapeHtml(t.steamChartsOpenSteamDb || 'Открыть на SteamDB')} ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+  parentRow.insertAdjacentElement('afterend', dropdown);
+  return dropdown;
+}
+
+/**
+ * Update the Players row (ИГРОКИ): add all-time peak & "Показать график" button.
+ */
+export function updatePlayersRowUi() {
+  const row = document.querySelector('[data-blp-enrich="players"]');
+  if (!row) return;
+
+  const valuesSlot = row.querySelector('[data-blp-values]');
+  if (!valuesSlot) return;
+
+  let wrap = valuesSlot.querySelector('.blp-players-row-controls');
+  if (!wrap) {
+    wrap = document.createElement('span');
+    wrap.className = 'blp-players-row-controls';
+    valuesSlot.appendChild(wrap);
+  }
+
+  const peakText = cachedOnlinePeak > 0
+    ? fmt(t.steamChartsAllTimePeak || 'пик: {n}', { n: formatNumber(cachedOnlinePeak) })
+    : '';
+
+  const btnText = isOnlineExpanded
+    ? (t.steamChartsHideChart || 'Скрыть график')
+    : (t.steamChartsShowChart || 'Показать график');
+
+  wrap.innerHTML = `
+    ${peakText ? `<span class="blp-players-peak" title="${escapeHtml(t.steamChartsPeak6m || 'Пик за всё время')}">${escapeHtml(peakText)}</span>` : ''}
+    <button type="button" class="blp-inline-chart-btn" data-blp-toggle-online-chart title="${escapeHtml(btnText)}">
+      <svg class="blp-inline-chart-btn__icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3.5 18.5l6-6 4 4 7-7.5-1.4-1.4-5.6 6-4-4-7.4 7.4z"/></svg>
+      <span>${escapeHtml(btnText)}</span>
+      <svg class="blp-inline-chart-btn__arrow ${isOnlineExpanded ? 'is-expanded' : ''}" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+    </button>
+  `;
+
+  const btn = wrap.querySelector('[data-blp-toggle-online-chart]');
+  if (btn) {
+    btn.onclick = () => {
+      isOnlineExpanded = !isOnlineExpanded;
+      const dropdown = ensureDropdownRow(row, 'online');
+      dropdown.hidden = !isOnlineExpanded;
+      updatePlayersRowUi();
+      if (isOnlineExpanded) {
+        const graphBox = dropdown.querySelector('[data-blp-graph-box]');
+        const footerNote = dropdown.querySelector('[data-blp-footer-note]');
+        const sdbLink = dropdown.querySelector('[data-blp-steamdb-link]');
+        if (footerNote) footerNote.textContent = t.steamChartsOnline6m || 'Онлайн за 6 месяцев';
+        if (sdbLink && cachedAppId) sdbLink.href = `${STEAMDB_APP_URL}/${cachedAppId}/graphs/`;
+        if (graphBox) renderSvgChart(graphBox, cachedOnlinePoints, false);
+      }
+    };
+  }
+
+  // If already open, re-render chart points
+  if (isOnlineExpanded) {
+    const dropdown = ensureDropdownRow(row, 'online');
+    dropdown.hidden = false;
+    const graphBox = dropdown.querySelector('[data-blp-graph-box]');
+    if (graphBox) renderSvgChart(graphBox, cachedOnlinePoints, false);
   }
 }
 
+/**
+ * Update the Steam Price row (STEAM): add All-time low pill & "График цен" button.
+ */
+export function updateSteamPriceRowUi() {
+  const row = document.querySelector('[data-blp-enrich="steam"]');
+  if (!row) return;
+
+  const valuesSlot = row.querySelector('[data-blp-values]');
+  if (!valuesSlot) return;
+
+  const firstLine = valuesSlot.querySelector('.blp-steam-line');
+  if (!firstLine) return;
+
+  let wrap = firstLine.querySelector('.blp-price-row-controls');
+  if (!wrap) {
+    wrap = document.createElement('span');
+    wrap.className = 'blp-price-row-controls';
+    firstLine.appendChild(wrap);
+  }
+
+  // Format Lowest price
+  let lowestHtml = '';
+  if (cachedItadPrice?.lowest?.price) {
+    const rawLowest = `${cachedItadPrice.lowest.price.amount} ${cachedItadPrice.lowest.price.currency}`;
+    const displayLowest = cachedConvertedLowest || rawLowest;
+    lowestHtml = `
+      <span class="blp-lowest-price-badge" title="${escapeHtml(t.steamChartsLowestPrice || 'Исторический минимум')}: ${escapeHtml(rawLowest)}">
+        <span class="blp-lowest-price-badge__label">${escapeHtml(t.steamChartsLowestPrice || 'Исторический минимум')}:</span>
+        <span class="blp-lowest-price-badge__val">${displayLowest}</span>
+      </span>
+    `;
+  }
+
+  const btnText = isPriceExpanded
+    ? (t.steamChartsHideChart || 'Скрыть график')
+    : (t.steamChartsPriceChart || 'График цен');
+
+  wrap.innerHTML = `
+    ${lowestHtml}
+    <button type="button" class="blp-inline-chart-btn" data-blp-toggle-price-chart title="${escapeHtml(btnText)}">
+      <svg class="blp-inline-chart-btn__icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      <span>${escapeHtml(btnText)}</span>
+      <svg class="blp-inline-chart-btn__arrow ${isPriceExpanded ? 'is-expanded' : ''}" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+    </button>
+  `;
+
+  const btn = wrap.querySelector('[data-blp-toggle-price-chart]');
+  if (btn) {
+    btn.onclick = () => {
+      isPriceExpanded = !isPriceExpanded;
+      const dropdown = ensureDropdownRow(row, 'price');
+      dropdown.hidden = !isPriceExpanded;
+      updateSteamPriceRowUi();
+      if (isPriceExpanded) {
+        const graphBox = dropdown.querySelector('[data-blp-graph-box]');
+        const footerNote = dropdown.querySelector('[data-blp-footer-note]');
+        const sdbLink = dropdown.querySelector('[data-blp-steamdb-link]');
+        if (footerNote) footerNote.textContent = t.steamChartsPriceHistoryNotice || 'История цен через ITAD и посещения';
+        if (sdbLink && cachedAppId) sdbLink.href = `${STEAMDB_APP_URL}/${cachedAppId}/`;
+        if (graphBox) renderSvgChart(graphBox, cachedPricePoints, true);
+      }
+    };
+  }
+
+  // If already open, re-render chart points
+  if (isPriceExpanded) {
+    const dropdown = ensureDropdownRow(row, 'price');
+    dropdown.hidden = false;
+    const graphBox = dropdown.querySelector('[data-blp-graph-box]');
+    if (graphBox) renderSvgChart(graphBox, cachedPricePoints, true);
+  }
+}
+
+/**
+ * Main data application hook
+ */
 export async function applySteamChartsData(appId, steamData, token = '', livePlayers = null) {
   if (settings.showSteamCharts === false) {
     removeSteamChartsWidget();
     return;
   }
 
-  const row = ensureSteamChartsMount(token);
-  if (!row) return;
-
   cachedAppId = appId;
   cachedPriceOverview = steamData?.price || null;
   cachedCurrentPlayers = livePlayers != null ? livePlayers : (steamData?.players != null ? steamData.players : null);
-
-  // Set SteamDB Link
-  const sdbLink = row.querySelector('[data-blp-steamdb-link]');
-  if (sdbLink) {
-    sdbLink.href = `${STEAMDB_APP_URL}/${appId}/graphs/`;
-  }
 
   // Record current price into local history
   if (cachedPriceOverview) {
     recordLocalPriceSnapshot(appId, settings.steamCountry, cachedPriceOverview);
   }
 
-  // Initial render with current players / price overview while async data loads
-  renderMetrics(row);
+  // Initial paint of inline buttons
+  updatePlayersRowUi();
+  updateSteamPriceRowUi();
 
   // Fetch online data from SteamCharts and prices from ITAD
   const onlinePromise = fetchSteamChartsData(appId);
@@ -446,16 +411,22 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
 
   const [onlineRes, itadRes, itadHistRes] = await Promise.all([onlinePromise, itadPromise, itadHistoryPromise]);
 
-  // onlinePromise returns Array directly (decorated with _cache property by asCacheMiss)
-  cachedOnlinePoints = Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []);
+  const onlineData = onlineRes?.points ? onlineRes : { points: Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []), allTimePeak: 0 };
+  cachedOnlinePoints = onlineData.points || [];
+  cachedOnlinePeak = onlineData.allTimePeak || 0;
+  if (!cachedOnlinePeak && cachedOnlinePoints.length) {
+    for (const p of cachedOnlinePoints) {
+      if (p[1] > cachedOnlinePeak) cachedOnlinePeak = p[1];
+    }
+  }
+
   cachedItadPrice = itadRes?.lowest ? itadRes : (itadRes?.data || null);
   const itadRawHistory = Array.isArray(itadHistRes) ? itadHistRes : (itadHistRes?.data || []);
 
-  // Build price points from local history
+  // Build price points
   const localHistory = getLocalPriceHistory(appId, settings.steamCountry);
   const pricePoints = [];
 
-  // If local history exists, convert to [timestamp, price] (matching the target currency)
   const currentCurrency = cachedPriceOverview?.currency || '';
   if (localHistory.length) {
     for (const h of localHistory) {
@@ -465,7 +436,6 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Ensure current price point is present
   const currentFinal = cachedPriceOverview?.final != null ? (cachedPriceOverview.final / 100) : null;
   const currentInitial = cachedPriceOverview?.initial != null ? (cachedPriceOverview.initial / 100) : currentFinal;
   const isCurrentlyDiscounted = Boolean(
@@ -478,7 +448,6 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
 
   const now = Date.now();
 
-  // If ITAD lowest is in different currency, convert it to local currency for display and chart
   let itadLowestConverted = null;
   let itadLowestTs = null;
 
@@ -504,29 +473,25 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Base regular price in current regional currency
   const basePrice = currentInitial || currentFinal || 0;
 
   // Process ITAD full historical price change events
-  // Prioritize Steam store (shop 61) events, or fallback to general authorized storefront events
   if (itadRawHistory.length && basePrice > 0) {
-    const steamEvents = itadRawHistory.filter(h => h.shop?.id === 61 || h.shop?.name === 'Steam');
+    const steamEvents = itadRawHistory.filter((h) => h.shop?.id === 61 || h.shop?.name === 'Steam');
     const effectiveEvents = steamEvents.length >= 3 ? steamEvents : itadRawHistory;
 
-    // Filter to events within the last 2 years, sorted ascending by timestamp
     const sortedEvents = effectiveEvents
-      .filter(h => h.timestamp && h.deal)
-      .map(h => ({
+      .filter((h) => h.timestamp && h.deal)
+      .map((h) => ({
         t: new Date(h.timestamp).getTime(),
         cut: Number(h.deal.cut) || 0,
         dealPrice: Number(h.deal.price?.amount),
-        regPrice: Number(h.deal.regular?.amount)
+        regPrice: Number(h.deal.regular?.amount),
       }))
-      .filter(h => !isNaN(h.t) && h.t > now - 730 * 24 * 3600 * 1000)
+      .filter((h) => !isNaN(h.t) && h.t > now - 730 * 24 * 3600 * 1000)
       .sort((a, b) => a.t - b.t);
 
     if (sortedEvents.length) {
-      // First point: baseline regular price before first event
       const firstT = sortedEvents[0].t;
       pricePoints.push([firstT - 24 * 3600 * 1000, basePrice]);
 
@@ -542,7 +507,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // If no ITAD history was loaded, fallback to synthetic baseline with ITAD lowest and active discounts
+  // Fallback if no events
   if (pricePoints.length === 0 && basePrice > 0) {
     const oldestTs = itadLowestTs && itadLowestTs < now - 180 * 24 * 3600 * 1000
       ? itadLowestTs - 14 * 24 * 3600 * 1000
@@ -563,7 +528,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Ensure active discount and current price are reflected right now
+  // Current price
   if (currentFinal != null) {
     if (isCurrentlyDiscounted) {
       const lastPt = pricePoints[pricePoints.length - 1];
@@ -575,7 +540,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     pricePoints.push([now, currentFinal]);
   }
 
-  // Deduplicate points with identical timestamp
+  // Deduplicate
   const uniquePoints = [];
   pricePoints.sort((a, b) => a[0] - b[0]);
   for (const pt of pricePoints) {
@@ -583,7 +548,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     if (!last || Math.abs(last[0] - pt[0]) > 60000) {
       uniquePoints.push(pt);
     } else {
-      uniquePoints[uniquePoints.length - 1] = pt; // update to latest value
+      uniquePoints[uniquePoints.length - 1] = pt;
     }
   }
 
@@ -593,6 +558,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
 
   cachedPricePoints = uniquePoints;
 
-  renderCurrentTab(row);
-}
+  // Re-render UI with populated data
+  updatePlayersRowUi();
+  updateSteamPriceRowUi();
 }
