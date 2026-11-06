@@ -30,6 +30,7 @@ export async function fetchOpenCritic(title) {
     // Search by name needs a key; without one the wiki/search routes below still work.
     const apiKey = settings.openCriticSource === 'api' ? String(settings.openCriticApiKey || '').trim() : '';
     const routes = [
+      () => fetchOpenCriticViaDirectApi(q),
       apiKey ? () => fetchOpenCriticViaApi(q, apiKey) : null,
       () => fetchOpenCriticViaPcgw(q),
       () => fetchOpenCriticViaHtml(q),
@@ -79,6 +80,41 @@ export function pickOpenCriticSearchMatch(list, title) {
     return { item: best.item, score: Math.max(best.titleScore, 80) };
   }
   return null;
+}
+
+const OPENCRITIC_CLIENT_AUTH = 'Bearer R2tBRkdvUU9WSHpoUXpaSXVYa2g5cGU5NEFsWUgyeXQ=';
+
+export async function fetchOpenCriticViaDirectApi(title) {
+  const q = String(title || '').trim();
+  if (!q) return null;
+  const results = await gmRequest({
+    url: `https://api.opencritic.com/api/game/search?criteria=${encodeURIComponent(q)}`,
+    headers: {
+      Accept: 'application/json',
+      Referer: `${OPENCRITIC_SITE}/`,
+      Authorization: OPENCRITIC_CLIENT_AUTH,
+    },
+    timeout: 15000,
+  });
+  const list = Array.isArray(results) ? results : [];
+  const picked = pickOpenCriticSearchMatch(list, q);
+  if (!picked?.item?.id) return null;
+  const id = Number(picked.item.id);
+  let detail = null;
+  try {
+    detail = await gmRequest({
+      url: `https://api.opencritic.com/api/game/${id}`,
+      headers: {
+        Accept: 'application/json',
+        Referer: `${OPENCRITIC_SITE}/`,
+        Authorization: OPENCRITIC_CLIENT_AUTH,
+      },
+      timeout: 15000,
+    });
+  } catch (_) {
+    detail = null;
+  }
+  return buildOpenCriticPayload(detail || picked.item, picked.item, q, picked.score);
 }
 
 function openCriticApiHeaders(apiKey) {
@@ -142,11 +178,13 @@ export function buildOpenCriticPayload(detail, searchItem, title, matchScore) {
       searchItem?.topCriticScore,
       searchItem?.medianScore
     ),
-    url: slug
-      ? `${OPENCRITIC_SITE}/game/${id}/${encodeURIComponent(slug)}`
-      : Number.isFinite(id)
-        ? `${OPENCRITIC_SITE}/game/${id}`
-        : `${OPENCRITIC_SITE}/search?q=${encodeURIComponent(title)}`,
+    url:
+      detail.url ||
+      (slug
+        ? `${OPENCRITIC_SITE}/game/${id}/${encodeURIComponent(slug)}`
+        : Number.isFinite(id)
+          ? `${OPENCRITIC_SITE}/game/${id}`
+          : `${OPENCRITIC_SITE}/search?q=${encodeURIComponent(title)}`),
     matchScore: matchScore || null,
     source: 'api',
     scoreParseV2: true,
