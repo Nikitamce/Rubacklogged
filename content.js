@@ -31,7 +31,7 @@
   }
 
   const DEFAULT_SETTINGS = getDefaultSettings();
-  const ATTRS = ['placeholder', 'title', 'aria-label'];
+  const ATTRS = ['placeholder', 'title', 'aria-label', 'data-original-title', 'data-bs-original-title'];
 
   // Tags that never contain translatable UI copy or must stay untouched.
   // Note: TEXTAREA placeholder is translatable, but its inner text is user input.
@@ -442,7 +442,7 @@
     translateAttributes(root);
     let elements;
     try {
-      elements = root.querySelectorAll('[placeholder], [title], [aria-label]');
+      elements = root.querySelectorAll('[placeholder], [title], [aria-label], [data-original-title], [data-bs-original-title]');
     } catch (error) {
       return;
     }
@@ -526,7 +526,7 @@
 
     let elements = [];
     try {
-      elements = document.querySelectorAll('[placeholder], [title], [aria-label]');
+      elements = document.querySelectorAll('[placeholder], [title], [aria-label], [data-original-title], [data-bs-original-title]');
     } catch (error) {
       elements = [];
     }

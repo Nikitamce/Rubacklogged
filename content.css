@@ -123,6 +123,35 @@ html.backloggd-i18n-active #interaction-sidebar .log-status-btn-label {
   white-space: nowrap;
 }
 
+/* Widen game sidebar on desktop/tablet for Russian so [Управлять списками] and [♡] fit on one line */
+@media (min-width: 576px) {
+  html.backloggd-i18n-active #interaction-sidebar,
+  html.backloggd-i18n-active .col-game-sidebar {
+    flex: 0 0 245px !important;
+    max-width: 245px !important;
+    width: 245px !important;
+  }
+}
+
+html.backloggd-i18n-active #interaction-sidebar a[href*="manage_lists"],
+html.backloggd-i18n-active #interaction-sidebar .manage-lists {
+  padding-left: 0.45rem !important;
+  padding-right: 0.45rem !important;
+  font-size: 0.82rem !important;
+  white-space: nowrap !important;
+}
+
+html.backloggd-i18n-active #interaction-sidebar .like-button,
+html.backloggd-i18n-active #interaction-sidebar .btn-like,
+html.backloggd-i18n-active #interaction-sidebar [data-game-like] {
+  flex-shrink: 0 !important;
+}
+
+html.backloggd-i18n-active #interaction-sidebar .row:has(a[href*="manage_lists"]),
+html.backloggd-i18n-active #interaction-sidebar .row:has(.manage-lists) {
+  flex-wrap: nowrap !important;
+}
+
 /* Changelog release tags (New / Changed / Fixed):
    Russian words like "Исправлено" and "Изменено" are wider than "Fixed" and "New".
    Increase badge min-width and horizontal padding so text never clips. */

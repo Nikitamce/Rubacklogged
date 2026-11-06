@@ -9,7 +9,7 @@ import { getFxRate, formatMoneyMajor, CURRENCY_SYMBOLS } from '../api/fx.js';
 import { STEAMDB_APP_URL } from '../constants.js';
 import { settings, t } from '../state.js';
 import { escapeAttr, escapeHtml } from '../utils/html.js';
-import { fmt } from '../i18n.js';
+import { fmt } from '../i18n/index.js';
 
 // State caches
 let cachedOnlinePoints = [];

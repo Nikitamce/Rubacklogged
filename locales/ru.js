@@ -1809,6 +1809,12 @@
     'Edit Log': 'Изменить запись',
     'Manage lists': 'Управлять списками',
     'Manage Lists': 'Управлять списками',
+    'Like this game': 'Нравится эта игра',
+    'Unlike this game': 'Убрать из понравившихся',
+    'Like this review': 'Нравится этот отзыв',
+    'Unlike this review': 'Убрать из понравившихся',
+    'Like this list': 'Нравится этот список',
+    'Unlike this list': 'Убрать из понравившихся',
     'Change cover': 'Сменить обложку',
     'Change Cover': 'Сменить обложку',
     'Add to lists': 'Добавить в списки',
@@ -3425,10 +3431,10 @@
       },
     },
     {
-      // "Released" is a filter label elsewhere, but a date header here
-      selector: '.game-details-header',
+      // "Released" is a filter label in catalog/search, but a release date badge/header on game pages
+      selector: '.game-details-header, #game-body, #game-profile, .game-page, .game-title-section, .sm-container, #game_detail_section',
       map: {
-        'Released': 'Дата релиза',
+        'Released': 'Релиз',
       },
     },
     {

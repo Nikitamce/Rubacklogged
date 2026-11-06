@@ -17,7 +17,7 @@ export default defineConfig({
       format: { comments: false },
     },
     cssMinify: true,
-    target: 'es2018',
+    target: 'es2022',
     reportCompressedSize: true,
   },
   esbuild: {

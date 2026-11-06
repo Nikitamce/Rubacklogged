@@ -111,11 +111,14 @@ function createEngine(code, dict) {
     return lead + translated + trail;
   }
 
-  function translateText(raw) {
+  function translateText(raw, el) {
     if (!raw) return null;
     const text = raw.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, ' ').trim();
     if (!text || text.length > 600) return null;
     if (russian) {
+      if (text === 'Released' && el?.closest?.('#game-body, #game-profile, .game-page, .game-title-section, .sm-container, #game_detail_section, .game-details-header')) {
+        return preserveEdges(raw, 'Релиз');
+      }
       if (/^owned,\s*subscription,/i.test(text)) return preserveEdges(raw, 'своя копия, подписка…');
       if (/^Added in (.+)$/i.test(text)) return preserveEdges(raw, `Добавлено в ${text.replace(/^Added in\s+/i, '')}`);
       if (/^you currently have no lists\b/i.test(text)) {
@@ -191,13 +194,13 @@ function createEngine(code, dict) {
       const visible = name === 'placeholder' || name === 'title' || name === 'aria-label' || name === 'aria-description';
       if (!value || value.length > 240) continue;
       if (!visible && (value.includes('/') || (value.indexOf(' ') === -1 && value.length > 24))) continue;
-      const next = translateText(value);
+      const next = translateText(value, el);
       if (next != null && next.trim() !== value) el.setAttribute(attr.name, next.trim());
     }
     if (el.tagName === 'INPUT') {
       const type = (el.getAttribute('type') || '').toLowerCase();
       if (type === 'submit' || type === 'button' || type === 'reset') {
-        const next = translateText(el.value);
+        const next = translateText(el.value, el);
         if (next != null && next !== el.value) el.value = next.trim();
       }
     }
@@ -211,7 +214,7 @@ function createEngine(code, dict) {
     }
     if (node.nodeType === 3) {
       if (/^(expand|collapse|show more|show less)$/i.test(String(node.nodeValue || '').trim())) return;
-      const next = translateText(node.nodeValue);
+      const next = translateText(node.nodeValue, node.parentElement);
       if (next != null && next !== node.nodeValue) node.nodeValue = next;
       return;
     }
