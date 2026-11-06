@@ -1125,7 +1125,7 @@ export function renderUnifiedDebugPanel({
   else document.querySelector('#game-body')?.appendChild(panel);
 }
 
-export function renderEnrichment(rows, { steam, links, error, owned = false, wishlist = false, gamestatus = null, title = '', slug = '', steamDb = null, opencritic = null, hltb = null, proton = null, skipDebug = false }) {
+export function renderEnrichment(rows, { steam, links, error, owned = false, wishlist = false, gamestatus = null, title = '', slug = '', steamDb = null, opencritic = null, metacritic = null, hltb = null, proton = null, skipDebug = false }) {
   const debugOn = Boolean(settings.debugMode);
 
   if (rows.steam) {
@@ -1442,6 +1442,7 @@ export async function enrichGamePage() {
         wishlist: state.wishlist,
         title,
         slug: ctx.slug,
+        metacritic: state.metacritic,
         skipDebug: true,
       }
     );
