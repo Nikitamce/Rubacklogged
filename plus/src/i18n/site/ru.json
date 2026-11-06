@@ -2965,6 +2965,7 @@
   "Xbox Series X|S": "Xbox Series X|S",
   "PlayStation 4": "PlayStation 4",
   "Xbox One": "Xbox One",
+  "Log history": "История записей",
   "Reviewed on": "Рецензия от",
   "Logged on": "Записано",
   "Played on": "Сыграно",
@@ -2973,5 +2974,8 @@
   "Created on": "Создано",
   "Updated on": "Обновлено",
   "Released on": "Выпущено",
+  "SHOW MORE": "ПОКАЗАТЬ ЕЩЁ",
+  "Link copied": "Ссылка скопирована",
+  "Copied": "Скопировано",
   "Backloggd - A Video Game Collection Tracker": "Backloggd — трекер игровой коллекции"
 }

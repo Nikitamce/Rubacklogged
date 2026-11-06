@@ -3169,6 +3169,11 @@
     'Xbox One': 'Xbox One',
 
     // Action prefixes
+    'Log history': 'История записей',
+    'Log History': 'История записей',
+    'SHOW MORE': 'ПОКАЗАТЬ ЕЩЁ',
+    'Link copied': 'Ссылка скопирована',
+    'Copied': 'Скопировано',
     'Reviewed on': 'Рецензия от',
     'Logged on': 'Записано',
     'Added on': 'Добавлено',

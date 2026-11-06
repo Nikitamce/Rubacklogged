@@ -123,6 +123,7 @@ test('formats dates', () => {
   assert.equal(translator.translate('Reviewed on 30 окт 2026'), 'Рецензия от 30 окт. 2026');
   assert.equal(translator.translate('Reviewed on Nov 01, 2026'), 'Рецензия от 1 нояб. 2026');
   assert.equal(translator.translate('Reviewed on'), 'Рецензия от');
+  assert.equal(translator.translate('Log history'), 'История записей');
   assert.equal(translator.translate('Avg 3.5★'), 'Ср. 3,5★');
 });
 
