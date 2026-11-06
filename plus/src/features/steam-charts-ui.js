@@ -338,7 +338,7 @@ function renderCurrentTab(row) {
   }
 }
 
-export async function applySteamChartsData(appId, steamData, token = '') {
+export async function applySteamChartsData(appId, steamData, token = '', livePlayers = null) {
   if (settings.showSteamCharts === false) {
     removeSteamChartsWidget();
     return;
@@ -349,7 +349,7 @@ export async function applySteamChartsData(appId, steamData, token = '') {
 
   cachedAppId = appId;
   cachedPriceOverview = steamData?.price || null;
-  cachedCurrentPlayers = steamData?.players != null ? steamData.players : null;
+  cachedCurrentPlayers = livePlayers != null ? livePlayers : (steamData?.players != null ? steamData.players : null);
 
   // Set SteamDB Link
   const sdbLink = row.querySelector('[data-blp-steamdb-link]');
@@ -361,6 +361,9 @@ export async function applySteamChartsData(appId, steamData, token = '') {
   if (cachedPriceOverview) {
     recordLocalPriceSnapshot(appId, settings.steamCountry, cachedPriceOverview);
   }
+
+  // Initial render with current players / price overview while async data loads
+  renderMetrics(row);
 
   // Fetch online data from SteamCharts
   const onlinePromise = fetchSteamChartsData(appId);
@@ -379,6 +382,14 @@ export async function applySteamChartsData(appId, steamData, token = '') {
   if (localHistory.length) {
     for (const h of localHistory) {
       pricePoints.push([h.t, h.p]);
+    }
+  }
+
+  // If no points yet or only 1, ensure at least 2 points for a line
+  if (cachedPriceOverview?.final != null) {
+    const curP = cachedPriceOverview.final / 100;
+    if (!pricePoints.some(pt => Math.abs(pt[1] - curP) < 0.01)) {
+      pricePoints.push([Date.now(), curP]);
     }
   }
 

@@ -35,9 +35,9 @@ export async function fetchSteamChartsData(appId) {
       const response = await gmRequest({
         url,
         method: 'GET',
-        responseType: 'json',
+        responseType: 'text',
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json, text/javascript, */*; q=0.01',
         },
         timeout: 15000,
         anonymous: true,
@@ -58,9 +58,17 @@ export async function fetchSteamChartsData(appId) {
 
       // Filter last 6 months (180 days)
       const sixMonthsAgo = Date.now() - 180 * 24 * 3600 * 1000;
-      const filtered = raw
+      let filtered = raw
         .filter((pt) => Array.isArray(pt) && pt.length >= 2 && pt[0] >= sixMonthsAgo && typeof pt[1] === 'number')
         .map((pt) => [pt[0], Math.round(pt[1])]);
+
+      // If filtered is empty but raw has recent data, take last 50 points
+      if (!filtered.length && raw.length) {
+        filtered = raw
+          .filter((pt) => Array.isArray(pt) && pt.length >= 2 && typeof pt[1] === 'number')
+          .slice(-60)
+          .map((pt) => [pt[0], Math.round(pt[1])]);
+      }
 
       if (filtered.length) {
         setCached(cacheKey, filtered, { ttlMs: STEAMCHARTS_TTL_MS });
@@ -173,3 +181,4 @@ export function getLocalPriceHistory(appId, country) {
   const history = getCached(key);
   return Array.isArray(history) ? history : [];
 }
+

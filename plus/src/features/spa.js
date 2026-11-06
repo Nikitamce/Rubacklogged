@@ -71,6 +71,8 @@ export function isBlpManagedElement(el) {
     el.classList?.contains('blp-ump-avatar-spin') ||
     el.classList?.contains('blp-gmp') ||
     el.classList?.contains('blp-profile-tier-chip') ||
+    el.classList?.contains('blp-charts-row') ||
+    el.classList?.contains('blp-charts-card') ||
     el.classList?.contains('blp-translate-btn') ||
     el.classList?.contains('blp-translate-result') ||
     el.classList?.contains('blp-translate-desc-slot') ||
@@ -83,7 +85,7 @@ export function isBlpManagedElement(el) {
   }
   return Boolean(
     el.closest?.(
-      `[${ENRICH_ATTR}], [${STEAMDB_ATTR}], [${SIMILAR_ATTR}], [${CARD_ATTR}], .blp-card-badges, .blp-settings-backdrop, .blp-fix-match-backdrop, .blp-export-backdrop, .blp-export-wrap, .blp-export-log-wrap, [data-blp-debug], [data-blp-translate], .blp-translate-btn, .blp-translate-result, .blp-translate-desc-slot, .blp-translate-review-slot, #blp-nav-settings, #blp-profile-menu-settings, #blp-toast-host, .blp-toast-host, #blp-user-mini-profile, .blp-ump, .blp-ump-avatar-spin, #blp-game-mini-profile, .blp-gmp, .blp-profile-tier-chip`
+      `[${ENRICH_ATTR}], [${STEAMDB_ATTR}], [${SIMILAR_ATTR}], [${CARD_ATTR}], [data-blp-charts], .blp-charts-row, .blp-card-badges, .blp-settings-backdrop, .blp-fix-match-backdrop, .blp-export-backdrop, .blp-export-wrap, .blp-export-log-wrap, [data-blp-debug], [data-blp-translate], .blp-translate-btn, .blp-translate-result, .blp-translate-desc-slot, .blp-translate-review-slot, #blp-nav-settings, #blp-profile-menu-settings, #blp-toast-host, .blp-toast-host, #blp-user-mini-profile, .blp-ump, .blp-ump-avatar-spin, #blp-game-mini-profile, .blp-gmp, .blp-profile-tier-chip`
     )
   );
 }

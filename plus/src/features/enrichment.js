@@ -1528,7 +1528,7 @@ export async function enrichGamePage() {
     applySimilarGames(cachedPage.similar, state.steam.appId, token, { final: true });
   }
   if (state.steam?.appId != null && settings.showSteamCharts !== false) {
-    applySteamChartsData(state.steam.appId, state.steam, token);
+    applySteamChartsData(state.steam.appId, state.steam, token, state.steamDb?.players);
   }
 
   let dependentsStarted = false;
@@ -1571,6 +1571,9 @@ export async function enrichGamePage() {
             applySteamDbUi(full, token, { final: true });
             paintPlayers();
             paintSteamDbDetails();
+            if (full.players != null && settings.showSteamCharts !== false) {
+              applySteamChartsData(steam.appId, steam, token, full.players);
+            }
           })
           .catch((err) => {
             if (!stillHere()) return;
@@ -1650,7 +1653,7 @@ export async function enrichGamePage() {
 
     if (settings.showSteamCharts !== false && steam.appId) {
       jobs.push(
-        applySteamChartsData(steam.appId, steam, token)
+        applySteamChartsData(steam.appId, steam, token, state.steamDb?.players)
       );
     }
 
