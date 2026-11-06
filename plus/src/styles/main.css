@@ -4746,92 +4746,17 @@ img.blp-cover-zoomable:focus-visible {
   }
 }
 
-/* Widen game sidebar block on desktop for Russian so buttons and labels fit comfortably */
-@media (min-width: 992px) {
-  html[data-blp-site-locale="ru"] #interaction-sidebar,
-  html[data-blp-site-locale="ru"] .col-game-sidebar,
-  html.backloggd-i18n-active #interaction-sidebar,
-  html.backloggd-i18n-active .col-game-sidebar {
-    flex: 0 0 285px !important;
-    max-width: 285px !important;
-    width: 285px !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  html[data-blp-site-locale="ru"] #interaction-sidebar,
-  html[data-blp-site-locale="ru"] .col-game-sidebar,
-  html.backloggd-i18n-active #interaction-sidebar,
-  html.backloggd-i18n-active .col-game-sidebar {
-    flex: 0 0 305px !important;
-    max-width: 305px !important;
-    width: 305px !important;
-  }
-}
-
-@media (min-width: 576px) and (max-width: 991.98px) {
-  html[data-blp-site-locale="ru"] #interaction-sidebar #logging-sidebar-section .col-md-5,
-  html.backloggd-i18n-active #interaction-sidebar #logging-sidebar-section .col-md-5 {
-    flex: 0 0 320px !important;
-    max-width: 320px !important;
-    width: 320px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-}
-
-/* Keep "Управлять списками" button compact, standard height, and strictly 1 line */
 html[data-blp-site-locale="ru"] #interaction-sidebar #add-to-list,
 html[data-blp-site-locale="ru"] #interaction-sidebar .manage-lists,
 html[data-blp-site-locale="ru"] #interaction-sidebar .add-list-btn,
-html[data-blp-site-locale="ru"] #interaction-sidebar .quick-list,
 html[data-blp-site-locale="ru"] #interaction-sidebar a[href*="manage_lists"],
 html.backloggd-i18n-active #interaction-sidebar #add-to-list,
 html.backloggd-i18n-active #interaction-sidebar .manage-lists,
 html.backloggd-i18n-active #interaction-sidebar .add-list-btn,
-html.backloggd-i18n-active #interaction-sidebar .quick-list,
 html.backloggd-i18n-active #interaction-sidebar a[href*="manage_lists"] {
+  font-size: 0.82rem !important;
+  padding-left: 0.35rem !important;
+  padding-right: 0.35rem !important;
   white-space: nowrap !important;
-  font-size: 0.84rem !important;
-  line-height: 1.2 !important;
-  padding: 0.38rem 0.55rem !important;
-  height: auto !important;
-  min-height: 32px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Ensure the row containing the list button and like button stays horizontal and never wraps */
-html[data-blp-site-locale="ru"] #interaction-sidebar .row:has(#add-to-list),
-html[data-blp-site-locale="ru"] #interaction-sidebar .row:has(.manage-lists),
-html[data-blp-site-locale="ru"] #interaction-sidebar .row:has(.add-list-btn),
-html[data-blp-site-locale="ru"] #interaction-sidebar .row:has(a[href*="manage_lists"]),
-html.backloggd-i18n-active #interaction-sidebar .row:has(#add-to-list),
-html.backloggd-i18n-active #interaction-sidebar .row:has(.manage-lists),
-html.backloggd-i18n-active #interaction-sidebar .row:has(.add-list-btn),
-html.backloggd-i18n-active #interaction-sidebar .row:has(a[href*="manage_lists"]) {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  align-items: stretch !important;
-}
-
-/* Like button next to Manage Lists */
-html[data-blp-site-locale="ru"] #interaction-sidebar .like-game-btn,
-html[data-blp-site-locale="ru"] #interaction-sidebar .like-button,
-html[data-blp-site-locale="ru"] #interaction-sidebar .btn-like,
-html[data-blp-site-locale="ru"] #interaction-sidebar [data-game-like],
-html.backloggd-i18n-active #interaction-sidebar .like-game-btn,
-html.backloggd-i18n-active #interaction-sidebar .like-button,
-html.backloggd-i18n-active #interaction-sidebar .btn-like,
-html.backloggd-i18n-active #interaction-sidebar [data-game-like] {
-  flex-shrink: 0 !important;
-  width: 32px !important;
-  height: 32px !important;
-  min-height: 32px !important;
-  padding: 0 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 
