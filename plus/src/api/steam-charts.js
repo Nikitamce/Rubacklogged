@@ -149,6 +149,7 @@ export function recordLocalPriceSnapshot(appId, country, priceData) {
   const list = Array.isArray(currentList) ? [...currentList] : [];
 
   const finalAmount = priceData.final != null ? (priceData.final / 100) : (priceData.amount != null ? priceData.amount : null);
+  const initialAmount = priceData.initial != null ? (priceData.initial / 100) : finalAmount;
   if (finalAmount == null || !Number.isFinite(finalAmount)) return;
 
   const now = Date.now();
@@ -163,6 +164,7 @@ export function recordLocalPriceSnapshot(appId, country, priceData) {
   list.push({
     t: now,
     p: finalAmount,
+    base: initialAmount,
     cur: priceData.currency || '',
     cut: priceData.discount_percent || priceData.cut || 0,
     fmt: priceData.final_formatted || '',

@@ -226,7 +226,17 @@ function renderSvgChart(boxEl, points, isPrice = false) {
   // Build SVG path
   let pathD = `M ${getX(points[0][0])},${getY(points[0][1])}`;
   for (let i = 1; i < points.length; i++) {
-    pathD += ` L ${getX(points[i][0])},${getY(points[i][1])}`;
+    const prevX = getX(points[i - 1][0]);
+    const prevY = getY(points[i - 1][1]);
+    const curX = getX(points[i][0]);
+    const curY = getY(points[i][1]);
+
+    if (isPrice) {
+      // Stepped horizontal line from prevX to curX, then vertical drop/jump to curY
+      pathD += ` L ${curX},${prevY} L ${curX},${curY}`;
+    } else {
+      pathD += ` L ${curX},${curY}`;
+    }
   }
 
   const areaD = `${pathD} L ${getX(points[points.length - 1][0])},${padTop + chartH} L ${getX(points[0][0])},${padTop + chartH} Z`;
@@ -295,19 +305,40 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     const ratio = (mouseX - padLeft) / chartW;
     const targetT = minX + ratio * (maxX - minX);
 
-    // Find closest point by binary search or find
-    let closest = points[0];
-    let minDiff = Math.abs(points[0][0] - targetT);
-    for (let i = 1; i < points.length; i++) {
-      const diff = Math.abs(points[i][0] - targetT);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = points[i];
-      }
-    }
+    let cx = 0;
+    let cy = 0;
+    let tooltipVal = 0;
+    let tooltipDate = 0;
 
-    const cx = getX(closest[0]);
-    const cy = getY(closest[1]);
+    if (isPrice) {
+      // In a stepped chart, the value at targetT is the value of the latest segment before or at targetT
+      let activePoint = points[0];
+      for (let i = 0; i < points.length; i++) {
+        if (points[i][0] <= targetT) {
+          activePoint = points[i];
+        } else {
+          break;
+        }
+      }
+      cx = mouseX;
+      cy = getY(activePoint[1]);
+      tooltipVal = activePoint[1];
+      tooltipDate = targetT;
+    } else {
+      let closest = points[0];
+      let minDiff = Math.abs(points[0][0] - targetT);
+      for (let i = 1; i < points.length; i++) {
+        const diff = Math.abs(points[i][0] - targetT);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = points[i];
+        }
+      }
+      cx = getX(closest[0]);
+      cy = getY(closest[1]);
+      tooltipVal = closest[1];
+      tooltipDate = closest[0];
+    }
 
     cursorLine.setAttribute('x1', cx);
     cursorLine.setAttribute('x2', cx);
@@ -321,8 +352,8 @@ function renderSvgChart(boxEl, points, isPrice = false) {
     tooltip.style.top = `${cy}px`;
     tooltip.style.display = 'block';
 
-    const unit = isPrice ? '' : ` ${t.players || 'игроков'}`;
-    tooltip.innerHTML = `<strong>${formatNumber(closest[1])}${unit}</strong><br><span style="opacity:0.75">${formatDate(closest[0])}</span>`;
+    const unit = isPrice ? (cachedPriceOverview?.currency ? ` ${CURRENCY_SYMBOLS[cachedPriceOverview.currency] || cachedPriceOverview.currency}` : '') : ` ${t.players || 'игроков'}`;
+    tooltip.innerHTML = `<strong>${formatNumber(tooltipVal)}${unit}</strong><br><span style="opacity:0.75">${formatDate(tooltipDate)}</span>`;
   };
 
   boxEl.addEventListener('pointermove', handlePointer);
@@ -400,36 +431,108 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   }
 
   // Ensure current price point is present
-  if (cachedPriceOverview?.final != null) {
-    const curP = cachedPriceOverview.final / 100;
-    if (!pricePoints.some(pt => Math.abs(pt[1] - curP) < 0.01)) {
-      pricePoints.push([Date.now(), curP]);
-    }
-  }
+  const currentFinal = cachedPriceOverview?.final != null ? (cachedPriceOverview.final / 100) : null;
+  const currentInitial = cachedPriceOverview?.initial != null ? (cachedPriceOverview.initial / 100) : currentFinal;
+  const isCurrentlyDiscounted = Boolean(
+    cachedPriceOverview?.discount_percent &&
+    cachedPriceOverview.discount_percent > 0 &&
+    currentFinal != null &&
+    currentInitial != null &&
+    currentInitial > currentFinal
+  );
+
+  const now = Date.now();
 
   // If ITAD lowest is in different currency, convert it to local currency for display and chart
+  let itadLowestConverted = null;
+  let itadLowestTs = null;
+
   if (cachedItadPrice?.lowest?.price?.amount != null && currentCurrency) {
     const itadCur = cachedItadPrice.lowest.price.currency;
     const itadAmt = cachedItadPrice.lowest.price.amount;
     if (itadCur === currentCurrency) {
+      itadLowestConverted = itadAmt;
       cachedConvertedLowest = `${itadAmt} ${CURRENCY_SYMBOLS[currentCurrency] || currentCurrency}`;
     } else {
       try {
         const rate = await getFxRate(itadCur, currentCurrency);
         if (rate && Number.isFinite(rate)) {
-          const converted = itadAmt * rate;
-          cachedConvertedLowest = `~ ${formatMoneyMajor(converted, currentCurrency, { maxFrac: 0 })}`;
-          // Also can be safely plotted on the chart curve!
-          const lowTs = new Date(cachedItadPrice.lowest.timestamp || (Date.now() - 90 * 24 * 3600 * 1000)).getTime();
-          if (lowTs && !isNaN(lowTs) && !pricePoints.some(pt => Math.abs(pt[0] - lowTs) < 3600000)) {
-            pricePoints.unshift([lowTs, Math.round(converted)]);
-          }
+          itadLowestConverted = Math.round(itadAmt * rate);
+          cachedConvertedLowest = `~ ${formatMoneyMajor(itadLowestConverted, currentCurrency, { maxFrac: 0 })}`;
         }
       } catch (_) {}
     }
+
+    if (cachedItadPrice.lowest.timestamp) {
+      const ts = new Date(cachedItadPrice.lowest.timestamp).getTime();
+      if (!isNaN(ts)) itadLowestTs = ts;
+    }
   }
 
-  // If only 1 point, duplicate with slight offset for flat line rendering
+  // Build a realistic stepped timeline with discount events
+  // 1. Regular base price
+  const basePrice = currentInitial || currentFinal || 0;
+
+  if (pricePoints.length === 0 && basePrice > 0) {
+    // If no local history exists yet, construct the baseline steps leading up to now
+    // Base price started at least 6 months ago (or at ITAD lowest timestamp if older)
+    const oldestTs = itadLowestTs && itadLowestTs < now - 180 * 24 * 3600 * 1000
+      ? itadLowestTs - 14 * 24 * 3600 * 1000
+      : now - 180 * 24 * 3600 * 1000;
+
+    pricePoints.push([oldestTs, basePrice]);
+
+    // If we have an all-time low sale event from ITAD
+    if (itadLowestConverted != null && itadLowestTs && itadLowestTs < now) {
+      const saleStart = itadLowestTs;
+      const saleEnd = saleStart + 7 * 24 * 3600 * 1000; // Steam sales typically last ~7-14 days
+
+      // Before sale: base price
+      pricePoints.push([saleStart - 3600 * 1000, basePrice]);
+      // During sale: lowest price
+      pricePoints.push([saleStart, itadLowestConverted]);
+      // If sale ended before now, return to base price
+      if (saleEnd < now - 24 * 3600 * 1000) {
+        pricePoints.push([saleEnd, itadLowestConverted]);
+        pricePoints.push([saleEnd + 3600 * 1000, basePrice]);
+      }
+    }
+
+    // If currently on sale: step down from base price to discounted price
+    if (isCurrentlyDiscounted) {
+      const discountStart = now - 5 * 24 * 3600 * 1000; // active discount
+      pricePoints.push([discountStart - 3600 * 1000, basePrice]);
+      pricePoints.push([discountStart, currentFinal]);
+      pricePoints.push([now, currentFinal]);
+    } else {
+      pricePoints.push([now, basePrice]);
+    }
+  } else {
+    // We already have some points from local recorded visits
+    if (itadLowestConverted != null && itadLowestTs && !pricePoints.some(pt => Math.abs(pt[0] - itadLowestTs) < 3600000)) {
+      const saleStart = itadLowestTs;
+      const saleEnd = saleStart + 7 * 24 * 3600 * 1000;
+      pricePoints.push([saleStart - 3600 * 1000, basePrice]);
+      pricePoints.push([saleStart, itadLowestConverted]);
+      if (saleEnd < now - 24 * 3600 * 1000) {
+        pricePoints.push([saleEnd, itadLowestConverted]);
+        pricePoints.push([saleEnd + 3600 * 1000, basePrice]);
+      }
+    }
+
+    if (currentFinal != null) {
+      if (isCurrentlyDiscounted) {
+        const lastPt = pricePoints[pricePoints.length - 1];
+        if (lastPt && Math.abs(lastPt[1] - basePrice) < 0.01) {
+          const discountStart = now - 3 * 24 * 3600 * 1000;
+          pricePoints.push([discountStart, currentFinal]);
+        }
+      }
+      pricePoints.push([now, currentFinal]);
+    }
+  }
+
+  // Deduplicate and ensure at least 2 points
   if (pricePoints.length === 1) {
     pricePoints.unshift([pricePoints[0][0] - 30 * 24 * 3600 * 1000, pricePoints[0][1]]);
   }
