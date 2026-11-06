@@ -4,6 +4,7 @@ import {
   getLocalPriceHistory,
   recordLocalPriceSnapshot,
 } from '../api/steam-charts.js';
+import { getFxRate, formatMoneyMajor, CURRENCY_SYMBOLS } from '../api/fx.js';
 import { FAVICON_URL, STEAMDB_APP_URL } from '../constants.js';
 import { settings, t } from '../state.js';
 import { escapeAttr, escapeHtml } from '../utils/html.js';
@@ -21,6 +22,7 @@ let cachedAppId = null;
 let cachedCurrentPlayers = null;
 let cachedPriceOverview = null;
 let cachedItadPrice = null;
+let cachedConvertedLowest = null;
 
 export function chartsMountAnchor() {
   const unifiedRow = document.querySelector('.blp-unified-rating-row');
@@ -153,9 +155,17 @@ function renderMetrics(row) {
     // Price Tab
     const currentPrice = cachedPriceOverview?.final_formatted || (cachedPriceOverview?.final ? `${(cachedPriceOverview.final / 100).toFixed(2)} ${cachedPriceOverview.currency || ''}` : '—');
     const discount = cachedPriceOverview?.discount_percent ? `-${cachedPriceOverview.discount_percent}%` : '0%';
-    const lowest = cachedItadPrice?.lowest?.price?.amount != null
-      ? `${cachedItadPrice.lowest.price.amount} ${cachedItadPrice.lowest.price.currency}`
-      : '—';
+    
+    let lowest = '—';
+    if (cachedItadPrice?.lowest?.price?.amount != null) {
+      const amt = cachedItadPrice.lowest.price.amount;
+      const cur = cachedItadPrice.lowest.price.currency;
+      if (cachedConvertedLowest) {
+        lowest = `${cachedConvertedLowest} <span style="font-size: 0.75rem; opacity: 0.7; font-weight: normal">(${amt} ${cur})</span>`;
+      } else {
+        lowest = `${amt} ${cur}`;
+      }
+    }
 
     container.innerHTML = `
       <div class="blp-charts-metric-tile">
@@ -168,7 +178,7 @@ function renderMetrics(row) {
       </div>
       <div class="blp-charts-metric-tile">
         <span class="blp-charts-metric-label">${escapeHtml(t.steamChartsLowestPrice)}</span>
-        <span class="blp-charts-metric-val">${escapeHtml(lowest)}</span>
+        <span class="blp-charts-metric-val">${lowest}</span>
       </div>
     `;
   }
@@ -397,15 +407,25 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Only include ITAD lowest in the curve if its currency matches our region's currency
-  if (
-    cachedItadPrice?.lowest?.timestamp &&
-    cachedItadPrice?.lowest?.price?.amount != null &&
-    cachedItadPrice?.lowest?.price?.currency === currentCurrency
-  ) {
-    const lowTs = new Date(cachedItadPrice.lowest.timestamp).getTime();
-    if (lowTs && !isNaN(lowTs)) {
-      pricePoints.unshift([lowTs, cachedItadPrice.lowest.price.amount]);
+  // If ITAD lowest is in different currency, convert it to local currency for display and chart
+  if (cachedItadPrice?.lowest?.price?.amount != null && currentCurrency) {
+    const itadCur = cachedItadPrice.lowest.price.currency;
+    const itadAmt = cachedItadPrice.lowest.price.amount;
+    if (itadCur === currentCurrency) {
+      cachedConvertedLowest = `${itadAmt} ${CURRENCY_SYMBOLS[currentCurrency] || currentCurrency}`;
+    } else {
+      try {
+        const rate = await getFxRate(itadCur, currentCurrency);
+        if (rate && Number.isFinite(rate)) {
+          const converted = itadAmt * rate;
+          cachedConvertedLowest = `~ ${formatMoneyMajor(converted, currentCurrency, { maxFrac: 0 })}`;
+          // Also can be safely plotted on the chart curve!
+          const lowTs = new Date(cachedItadPrice.lowest.timestamp || (Date.now() - 90 * 24 * 3600 * 1000)).getTime();
+          if (lowTs && !isNaN(lowTs) && !pricePoints.some(pt => Math.abs(pt[0] - lowTs) < 3600000)) {
+            pricePoints.unshift([lowTs, Math.round(converted)]);
+          }
+        }
+      } catch (_) {}
     }
   }
 
