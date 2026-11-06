@@ -375,18 +375,21 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   cachedOnlinePoints = Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []);
   cachedItadPrice = itadRes?.lowest ? itadRes : (itadRes?.data || null);
 
-  // Build price points from local history + ITAD lowest
+  // Build price points from local history
   const localHistory = getLocalPriceHistory(appId, settings.steamCountry);
   const pricePoints = [];
 
-  // If local history exists, convert to [timestamp, price]
+  // If local history exists, convert to [timestamp, price] (matching the target currency)
+  const currentCurrency = cachedPriceOverview?.currency || '';
   if (localHistory.length) {
     for (const h of localHistory) {
-      pricePoints.push([h.t, h.p]);
+      if (!currentCurrency || !h.cur || h.cur === currentCurrency) {
+        pricePoints.push([h.t, h.p]);
+      }
     }
   }
 
-  // If no points yet or only 1, ensure at least 2 points for a line
+  // Ensure current price point is present
   if (cachedPriceOverview?.final != null) {
     const curP = cachedPriceOverview.final / 100;
     if (!pricePoints.some(pt => Math.abs(pt[1] - curP) < 0.01)) {
@@ -394,15 +397,19 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Add historical low from ITAD if available and earlier
-  if (cachedItadPrice?.lowest?.timestamp && cachedItadPrice?.lowest?.price?.amount != null) {
+  // Only include ITAD lowest in the curve if its currency matches our region's currency
+  if (
+    cachedItadPrice?.lowest?.timestamp &&
+    cachedItadPrice?.lowest?.price?.amount != null &&
+    cachedItadPrice?.lowest?.price?.currency === currentCurrency
+  ) {
     const lowTs = new Date(cachedItadPrice.lowest.timestamp).getTime();
     if (lowTs && !isNaN(lowTs)) {
       pricePoints.unshift([lowTs, cachedItadPrice.lowest.price.amount]);
     }
   }
 
-  // If only 1 point, duplicate with slight offset for line rendering
+  // If only 1 point, duplicate with slight offset for flat line rendering
   if (pricePoints.length === 1) {
     pricePoints.unshift([pricePoints[0][0] - 30 * 24 * 3600 * 1000, pricePoints[0][1]]);
   }
