@@ -1,5 +1,6 @@
 import {
   fetchAugmentedSteamPrice,
+  fetchItadPriceHistory,
   fetchSteamChartsData,
   getLocalPriceHistory,
   recordLocalPriceSnapshot,
@@ -406,15 +407,17 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   // Initial render with current players / price overview while async data loads
   renderMetrics(row);
 
-  // Fetch online data from SteamCharts
+  // Fetch online data from SteamCharts and prices from ITAD
   const onlinePromise = fetchSteamChartsData(appId);
   const itadPromise = fetchAugmentedSteamPrice(appId, settings.steamCountry);
+  const itadHistoryPromise = fetchItadPriceHistory(appId, settings.steamCountry);
 
-  const [onlineRes, itadRes] = await Promise.all([onlinePromise, itadPromise]);
+  const [onlineRes, itadRes, itadHistRes] = await Promise.all([onlinePromise, itadPromise, itadHistoryPromise]);
 
   // onlinePromise returns Array directly (decorated with _cache property by asCacheMiss)
   cachedOnlinePoints = Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []);
   cachedItadPrice = itadRes?.lowest ? itadRes : (itadRes?.data || null);
+  const itadRawHistory = Array.isArray(itadHistRes) ? itadHistRes : (itadHistRes?.data || []);
 
   // Build price points from local history
   const localHistory = getLocalPriceHistory(appId, settings.steamCountry);
@@ -469,49 +472,56 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  // Build a realistic stepped timeline with discount events
-  // 1. Regular base price
+  // Base regular price in current regional currency
   const basePrice = currentInitial || currentFinal || 0;
 
+  // Process ITAD full historical price change events
+  // Prioritize Steam store (shop 61) events, or fallback to general authorized storefront events
+  if (itadRawHistory.length && basePrice > 0) {
+    const steamEvents = itadRawHistory.filter(h => h.shop?.id === 61 || h.shop?.name === 'Steam');
+    const effectiveEvents = steamEvents.length >= 3 ? steamEvents : itadRawHistory;
+
+    // Filter to events within the last 2 years, sorted ascending by timestamp
+    const sortedEvents = effectiveEvents
+      .filter(h => h.timestamp && h.deal)
+      .map(h => ({
+        t: new Date(h.timestamp).getTime(),
+        cut: Number(h.deal.cut) || 0,
+        dealPrice: Number(h.deal.price?.amount),
+        regPrice: Number(h.deal.regular?.amount)
+      }))
+      .filter(h => !isNaN(h.t) && h.t > now - 730 * 24 * 3600 * 1000)
+      .sort((a, b) => a.t - b.t);
+
+    if (sortedEvents.length) {
+      // First point: baseline regular price before first event
+      const firstT = sortedEvents[0].t;
+      pricePoints.push([firstT - 24 * 3600 * 1000, basePrice]);
+
+      for (const ev of sortedEvents) {
+        let stepPrice = basePrice;
+        if (ev.cut > 0) {
+          stepPrice = Math.round(basePrice * (1 - ev.cut / 100));
+        } else if (ev.dealPrice && ev.regPrice && ev.regPrice > ev.dealPrice) {
+          stepPrice = Math.round(basePrice * (ev.dealPrice / ev.regPrice));
+        }
+        pricePoints.push([ev.t, stepPrice]);
+      }
+    }
+  }
+
+  // If no ITAD history was loaded, fallback to synthetic baseline with ITAD lowest and active discounts
   if (pricePoints.length === 0 && basePrice > 0) {
-    // If no local history exists yet, construct the baseline steps leading up to now
-    // Base price started at least 6 months ago (or at ITAD lowest timestamp if older)
     const oldestTs = itadLowestTs && itadLowestTs < now - 180 * 24 * 3600 * 1000
       ? itadLowestTs - 14 * 24 * 3600 * 1000
       : now - 180 * 24 * 3600 * 1000;
 
     pricePoints.push([oldestTs, basePrice]);
 
-    // If we have an all-time low sale event from ITAD
     if (itadLowestConverted != null && itadLowestTs && itadLowestTs < now) {
       const saleStart = itadLowestTs;
-      const saleEnd = saleStart + 7 * 24 * 3600 * 1000; // Steam sales typically last ~7-14 days
-
-      // Before sale: base price
-      pricePoints.push([saleStart - 3600 * 1000, basePrice]);
-      // During sale: lowest price
-      pricePoints.push([saleStart, itadLowestConverted]);
-      // If sale ended before now, return to base price
-      if (saleEnd < now - 24 * 3600 * 1000) {
-        pricePoints.push([saleEnd, itadLowestConverted]);
-        pricePoints.push([saleEnd + 3600 * 1000, basePrice]);
-      }
-    }
-
-    // If currently on sale: step down from base price to discounted price
-    if (isCurrentlyDiscounted) {
-      const discountStart = now - 5 * 24 * 3600 * 1000; // active discount
-      pricePoints.push([discountStart - 3600 * 1000, basePrice]);
-      pricePoints.push([discountStart, currentFinal]);
-      pricePoints.push([now, currentFinal]);
-    } else {
-      pricePoints.push([now, basePrice]);
-    }
-  } else {
-    // We already have some points from local recorded visits
-    if (itadLowestConverted != null && itadLowestTs && !pricePoints.some(pt => Math.abs(pt[0] - itadLowestTs) < 3600000)) {
-      const saleStart = itadLowestTs;
       const saleEnd = saleStart + 7 * 24 * 3600 * 1000;
+
       pricePoints.push([saleStart - 3600 * 1000, basePrice]);
       pricePoints.push([saleStart, itadLowestConverted]);
       if (saleEnd < now - 24 * 3600 * 1000) {
@@ -519,27 +529,38 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
         pricePoints.push([saleEnd + 3600 * 1000, basePrice]);
       }
     }
+  }
 
-    if (currentFinal != null) {
-      if (isCurrentlyDiscounted) {
-        const lastPt = pricePoints[pricePoints.length - 1];
-        if (lastPt && Math.abs(lastPt[1] - basePrice) < 0.01) {
-          const discountStart = now - 3 * 24 * 3600 * 1000;
-          pricePoints.push([discountStart, currentFinal]);
-        }
+  // Ensure active discount and current price are reflected right now
+  if (currentFinal != null) {
+    if (isCurrentlyDiscounted) {
+      const lastPt = pricePoints[pricePoints.length - 1];
+      if (lastPt && Math.abs(lastPt[1] - basePrice) < 0.01) {
+        const discountStart = now - 3 * 24 * 3600 * 1000;
+        pricePoints.push([discountStart, currentFinal]);
       }
-      pricePoints.push([now, currentFinal]);
+    }
+    pricePoints.push([now, currentFinal]);
+  }
+
+  // Deduplicate points with identical timestamp
+  const uniquePoints = [];
+  pricePoints.sort((a, b) => a[0] - b[0]);
+  for (const pt of pricePoints) {
+    const last = uniquePoints[uniquePoints.length - 1];
+    if (!last || Math.abs(last[0] - pt[0]) > 60000) {
+      uniquePoints.push(pt);
+    } else {
+      uniquePoints[uniquePoints.length - 1] = pt; // update to latest value
     }
   }
 
-  // Deduplicate and ensure at least 2 points
-  if (pricePoints.length === 1) {
-    pricePoints.unshift([pricePoints[0][0] - 30 * 24 * 3600 * 1000, pricePoints[0][1]]);
+  if (uniquePoints.length === 1) {
+    uniquePoints.unshift([uniquePoints[0][0] - 30 * 24 * 3600 * 1000, uniquePoints[0][1]]);
   }
 
-  // Sort by timestamp
-  pricePoints.sort((a, b) => a[0] - b[0]);
-  cachedPricePoints = pricePoints;
+  cachedPricePoints = uniquePoints;
 
   renderCurrentTab(row);
+}
 }

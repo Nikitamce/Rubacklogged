@@ -137,6 +137,71 @@ export async function fetchAugmentedSteamPrice(appId, country = 'US') {
   }
 }
 
+const ITAD_API_KEY = '3013cdfd127f827c4ad142f55702f9e23e5dba8a';
+
+/**
+ * Fetch historical price changes and sales from IsThereAnyDeal
+ */
+export async function fetchItadPriceHistory(appId, country = 'US') {
+  const id = Number(appId);
+  if (!Number.isFinite(id) || id <= 0) return asCacheMiss([]);
+
+  const cacheKey = `itad:history:${id}:${country}`;
+  const cached = getCached(cacheKey);
+  if (cached) return asCacheHit(cached);
+
+  try {
+    // 1. Lookup ITAD game UUID from steam AppID
+    const lookupRes = await gmRequest({
+      url: `https://api.isthereanydeal.com/games/lookup/v1?key=${ITAD_API_KEY}&appid=${id}`,
+      method: 'GET',
+      responseType: 'json',
+      timeout: 10000,
+      anonymous: true,
+    });
+
+    let lookupData = lookupRes;
+    if (typeof lookupData === 'string') {
+      try {
+        lookupData = JSON.parse(lookupData);
+      } catch (_) {
+        lookupData = null;
+      }
+    }
+
+    const gameId = lookupData?.game?.id;
+    if (!gameId) return asCacheMiss([]);
+
+    // 2. Fetch price change history for the last 2 years
+    const sinceDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString();
+    const historyRes = await gmRequest({
+      url: `https://api.isthereanydeal.com/games/history/v2?key=${ITAD_API_KEY}&id=${encodeURIComponent(gameId)}&since=${encodeURIComponent(sinceDate)}`,
+      method: 'GET',
+      responseType: 'json',
+      timeout: 12000,
+      anonymous: true,
+    });
+
+    let historyData = historyRes;
+    if (typeof historyData === 'string') {
+      try {
+        historyData = JSON.parse(historyData);
+      } catch (_) {
+        historyData = [];
+      }
+    }
+
+    if (Array.isArray(historyData) && historyData.length) {
+      setCached(cacheKey, historyData, { ttlMs: 12 * 3600 * 1000 });
+      return asCacheMiss(historyData);
+    }
+
+    return asCacheMiss([]);
+  } catch (err) {
+    return asCacheMiss([]);
+  }
+}
+
 /**
  * Record a historical price snapshot into local GM cache
  */
