@@ -3220,6 +3220,70 @@
     'Thanks for your feedback!': 'Спасибо за отзыв!',
     'Thank you for your feedback!': 'Спасибо за ваш отзыв!',
 
+    // Badges page
+    'Earned': 'Получено',
+    'Locked': 'Не получено',
+    'Keep using the site to unlock!': 'Продолжайте пользоваться сайтом, чтобы открыть!',
+    'Earned on': 'Получено',
+    'Joined on': 'На сайте с',
+
+    // Badge titles
+    'Swamped': 'В трясине',
+    'Shreked': 'В трясине',
+    'Donor': 'Меценат',
+    'Roadtrip': 'Путешествие',
+    'Pinged': 'Пинг',
+    'Liked': 'Понравилось',
+    'Loved': 'Любимо',
+    'Adored': 'В восторге',
+    'Treasured': 'Сокровище',
+    'N00b': 'Новичок',
+    'Gamer': 'Геймер',
+    'Elite Gamer': 'Элитный геймер',
+    'Epic Gamer': 'Эпический геймер',
+    'Noticed': 'Замечен',
+    'Trend Setter': 'Законодатель мод',
+    'Trendsetter': 'Законодатель мод',
+    'Famous': 'Знаменитость',
+    'Well Written': 'Мастер пера',
+    'On Schedule': 'По расписанию',
+    'Full-Time': 'Полная ставка',
+    'Clearin your Calendar': 'Свободный календарь',
+    'Clearing your Calendar': 'Свободный календарь',
+    'Clearing Your Calendar': 'Свободный календарь',
+    'Busy Day': 'Насыщенный день',
+    'Listed': 'В списках',
+    'Best Friends': 'Лучшие друзья',
+    'Organized': 'Организованность',
+    'Gone Gold': '«Золотой» статус',
+    'Early Access': 'Ранний доступ',
+    'Top Shelf': 'Верхняя полка',
+
+    // Badge descriptions
+    'Found the secret ogre page': 'Найдена секретная страница людоеда',
+    'Liked 50+ reviews / lists': 'Поставлено 50+ лайков рецензиям / спискам',
+    'Voted for at least 3 features on the roadmap': 'Голос минимум за 3 функции в планах развития',
+    'Mentioned by another user': 'Упоминание другим пользователем',
+    'Get 10+ likes on your reviews': 'Получите 10+ лайков к вашим рецензиям',
+    'Get 100+ likes on your reviews': 'Получите 100+ лайков к вашим рецензиям',
+    'Get 300+ likes on your reviews': 'Получите 300+ лайков к вашим рецензиям',
+    'Get 750+ likes on your reviews': 'Получите 750+ лайков к вашим рецензиям',
+    'Get 10+ likes on a single review': 'Получите 10+ лайков к одной рецензии',
+    'Get 5+ likes while on the front page': 'Получите 5+ лайков на главной странице',
+    'Play 100 games': 'Сыграйте в 100 игр',
+    'Play 250 games': 'Сыграйте в 250 игр',
+    'Play 500 games': 'Сыграйте в 500 игр',
+    'Play 1,000 games': 'Сыграйте в 1000 игр',
+    'Play 1000 games': 'Сыграйте в 1000 игр',
+    'Have 3 followers': 'Получите 3 подписчиков',
+    'Have 15 followers': 'Получите 15 подписчиков',
+    'Have 50 followers': 'Получите 50 подписчиков',
+    'Have 100 followers': 'Получите 100 подписчиков',
+    'Have 3 mutual follows': 'Имейте 3 взаимных подписки',
+    'Create 10 public lists': 'Создайте 10 публичных списков',
+    'Create a folder with 5+ lists': 'Создайте папку с 5+ списками',
+    'Log 5 games in a single day': 'Запишите 5 игр за один день',
+
     // Document titles
     'Backloggd - A Video Game Collection Tracker': 'Backloggd — трекер игровой коллекции',
   };
@@ -3345,8 +3409,8 @@
       },
     },
     {
-      // "Reviewed on Nov 01, 2026", "Reviewed on 30 Oct 2026", "Reviewed on 30 окт 2026"
-      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(?:([A-Za-zА-Яа-яёЁ.]+)\s+(\d{1,2})|(\d{1,2})\s+([A-Za-zА-Яа-яёЁ.]+))(?:,\s*|\s+)?(\d{4})?$/i,
+      // "Reviewed on Nov 01, 2026", "Earned on 18 окт 2026", "Joined on 07 апр 2024"
+      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released|Earned|Joined)\s+on\s+(?:([A-Za-zА-Яа-яёЁ.]+)\s+(\d{1,2})|(\d{1,2})\s+([A-Za-zА-Яа-яёЁ.]+))(?:,\s*|\s+)?(\d{4})?$/i,
       replace: (match, action, m1, d1, d2, m2, year) => {
         const rawMonth = m1 || m2;
         const rawDay = d1 || d2;
@@ -3361,6 +3425,8 @@
           created: 'Создано',
           updated: 'Обновлено',
           released: 'Выпущено',
+          earned: 'Получено',
+          joined: 'На сайте с',
         };
         const act = actionMap[action.toLowerCase()] || action;
         const yearPart = year ? ` ${year}` : '';
@@ -3368,8 +3434,8 @@
       },
     },
     {
-      // Fallback for "Reviewed on 30 окт 2026" or any already partially localized or custom-formatted date
-      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(.+)$/i,
+      // Fallback for "Reviewed on 30 окт 2026", "Earned on 18 окт 2026" or any already partially localized date
+      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released|Earned|Joined)\s+on\s+(.+)$/i,
       replace: (match, action, rest) => {
         const actionMap = {
           reviewed: 'Рецензия от',
@@ -3380,6 +3446,8 @@
           created: 'Создано',
           updated: 'Обновлено',
           released: 'Выпущено',
+          earned: 'Получено',
+          joined: 'На сайте с',
         };
         const act = actionMap[action.toLowerCase()] || action;
         return `${act} ${rest}`;
@@ -3491,9 +3559,54 @@
         return `Как вам ${topic}?`;
       },
     },
+    {
+      // "2 Years of Service", "1 Year of Service"
+      re: /^(\d+)\s+Years?\s+of\s+Service$/i,
+      replace: (match, rawCount) => {
+        const count = Number(rawCount);
+        return `${formatNumber(count)} ${plural(count, ['год', 'года', 'лет'])} выслуги`;
+      },
+    },
+    {
+      // "Being part of the Backloggd community for 2 years"
+      re: /^Being part of the Backloggd community for (\d+)\s+years?$/i,
+      replace: (match, rawCount) => {
+        const count = Number(rawCount);
+        return `В сообществе Backloggd уже ${formatNumber(count)} ${plural(count, ['год', 'года', 'лет'])}`;
+      },
+    },
+    {
+      // "GOTY '24", "GOTY 2024"
+      re: /^GOTY\s*'?(\d{2,4})$/i,
+      replace: (match, year) => `Игра года '${year.length === 4 ? year.slice(-2) : year}`,
+    },
+    {
+      // "Participated in the 2024 Game of the Year Event"
+      re: /^Participated in the (\d{4}) Game of the Year Event$/i,
+      replace: (match, year) => `Участие в событии «Игра года ${year}»`,
+    },
+    {
+      // "Replay '07", "Replay '08"
+      re: /^Replay\s*'?(\d{2,4})$/i,
+      replace: (match, year) => `Повтор '${year.length === 4 ? year.slice(-2) : year}`,
+    },
+    {
+      // "Participated in the 2007 Replay Event"
+      re: /^Participated in the (\d{4}) Replay Event$/i,
+      replace: (match, year) => `Участие в событии «Повтор ${year}»`,
+    },
   ];
 
   const contexts = [
+    {
+      // Badge name: "Popular" -> "Популярность" (instead of "Популярные")
+      selector: '.badge-title, .badges, .backlog-badge-cus-col, .badge-details, .badge-card',
+      map: {
+        'Popular': 'Популярность',
+        'Earned': 'Получено',
+        'Locked': 'Не получено',
+      },
+    },
     {
       // Profile overview stats: "124 Games" -> stat-label has just "Games"
       selector: '.stat-label',

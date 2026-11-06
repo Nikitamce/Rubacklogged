@@ -130,6 +130,9 @@ function createEngine(code, dict) {
       if (text === 'Log or review again') {
         return preserveEdges(raw, 'Записать снова');
       }
+      if (text === 'Popular' && el?.closest?.('.badge-title, .badges, .backlog-badge-cus-col, .badge-details, .badge-card, [href*="/badges"]')) {
+        return preserveEdges(raw, 'Популярность');
+      }
       if (/^owned,\s*subscription,/i.test(text)) return preserveEdges(raw, 'своя копия, подписка…');
       if (/^Added in (.+)$/i.test(text)) return preserveEdges(raw, `Добавлено в ${text.replace(/^Added in\s+/i, '')}`);
       if (/^you currently have no lists\b/i.test(text)) {
@@ -224,6 +227,32 @@ function createEngine(code, dict) {
       if (/badges?/i.test(liking[1])) return preserveEdges(raw, 'Как вам новые значки?');
       return preserveEdges(raw, `Как вам ${liking[1]}?`);
     }
+    const yos = text.match(/^(\d+)\s+Years?\s+of\s+Service$/i);
+    if (yos) {
+      const n = Number(yos[1]);
+      const word = n === 1 ? 'год' : n > 1 && n < 5 ? 'года' : 'лет';
+      return preserveEdges(raw, `${yos[1]} ${word} выслуги`);
+    }
+    const yosDesc = text.match(/^Being part of the Backloggd community for (\d+)\s+years?$/i);
+    if (yosDesc) {
+      const n = Number(yosDesc[1]);
+      const word = n === 1 ? 'год' : n > 1 && n < 5 ? 'года' : 'лет';
+      return preserveEdges(raw, `В сообществе Backloggd уже ${yosDesc[1]} ${word}`);
+    }
+    const goty = text.match(/^GOTY\s*'?(\d{2,4})$/i);
+    if (goty) {
+      const y = goty[1].length === 4 ? goty[1].slice(-2) : goty[1];
+      return preserveEdges(raw, `Игра года '${y}`);
+    }
+    const gotyDesc = text.match(/^Participated in the (\d{4}) Game of the Year Event$/i);
+    if (gotyDesc) return preserveEdges(raw, `Участие в событии «Игра года ${gotyDesc[1]}»`);
+    const replayEvt = text.match(/^Replay\s*'?(\d{2,4})$/i);
+    if (replayEvt) {
+      const y = replayEvt[1].length === 4 ? replayEvt[1].slice(-2) : replayEvt[1];
+      return preserveEdges(raw, `Повтор '${y}`);
+    }
+    const replayDesc = text.match(/^Participated in the (\d{4}) Replay Event$/i);
+    if (replayDesc) return preserveEdges(raw, `Участие в событии «Повтор ${replayDesc[1]}»`);
     if (/^[‹«<]\s*Prev$/i.test(text)) return preserveEdges(raw, '‹ Назад');
     if (/^Next\s*[›»>]$/i.test(text)) return preserveEdges(raw, 'Далее ›');
     return null;

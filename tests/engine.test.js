@@ -132,6 +132,15 @@ test('formats dates', () => {
   assert.equal(translator.translate('First Time'), 'Первое прохождение');
   assert.equal(translator.translate('Replay'), 'Повторное прохождение');
   assert.equal(translator.translate('How are you liking the new badge designs?'), 'Как вам новый дизайн значков?');
+  assert.equal(translator.translate('Earned on 18 окт 2026'), 'Получено 18 окт. 2026');
+  assert.equal(translator.translate('Joined on 07 апр 2024'), 'На сайте с 7 апр. 2024');
+  assert.equal(translator.translate('Swamped'), 'В трясине');
+  assert.equal(translator.translate('Found the secret ogre page'), 'Найдена секретная страница людоеда');
+  assert.equal(translator.translate('Keep using the site to unlock!'), 'Продолжайте пользоваться сайтом, чтобы открыть!');
+  assert.equal(translator.translate('2 Years of Service'), '2 года выслуги');
+  assert.equal(translator.translate('Being part of the Backloggd community for 2 years'), 'В сообществе Backloggd уже 2 года');
+  assert.equal(translator.translate("GOTY '24"), "Игра года '24");
+  assert.equal(translator.translate("Replay '07"), "Повтор '07");
   assert.equal(translator.translate('Avg 3.5★'), 'Ср. 3,5★');
 });
 
