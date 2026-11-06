@@ -3446,7 +3446,7 @@
     },
     {
       // Sidebar CTA is narrow: use a compact wording instead of the long
-      selector: '#interaction-sidebar, .game-cover',
+      selector: '#interaction-sidebar, .col-game-sidebar, #game-body, #game-profile, .game-page, .game-cover, .btn-main',
       map: {
         'Log': 'Запись',
         'or review': '/ рецензия',

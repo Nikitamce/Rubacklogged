@@ -119,6 +119,15 @@ function createEngine(code, dict) {
       if (text === 'Released' && el?.closest?.('#game-body, #game-profile, .game-page, .game-title-section, .sm-container, #game_detail_section, .game-details-header')) {
         return preserveEdges(raw, 'Релиз');
       }
+      if (text === 'Log or review' || text === 'Log or Review') {
+        return preserveEdges(raw, 'Запись / рецензия');
+      }
+      if (text === 'or review' || text === 'or Review') {
+        return preserveEdges(raw, '/ рецензия');
+      }
+      if (text === 'Log or review again') {
+        return preserveEdges(raw, 'Записать снова');
+      }
       if (/^owned,\s*subscription,/i.test(text)) return preserveEdges(raw, 'своя копия, подписка…');
       if (/^Added in (.+)$/i.test(text)) return preserveEdges(raw, `Добавлено в ${text.replace(/^Added in\s+/i, '')}`);
       if (/^you currently have no lists\b/i.test(text)) {
