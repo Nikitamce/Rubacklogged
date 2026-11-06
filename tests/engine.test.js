@@ -95,6 +95,9 @@ test('applies context-specific wording', () => {
   assert.equal(translator.translate('Gained 10+ total review likes'), 'Получено 10+ лайков к рецензиям');
   assert.equal(translator.translate('Played 50+ games'), 'Сыграно 50+ игр');
   assert.equal(translator.translate('Gained 3+ followers'), 'Получено 3+ подписчиков');
+  assert.equal(translator.translate('Liked 25+ games'), 'Понравилось 25+ игр');
+  assert.equal(translator.translate('Liked 50+ games'), 'Понравилось 50+ игр');
+  assert.equal(translator.translate('Top Shelf'), 'Верхняя полка');
 });
 
 test('pluralizes counts', () => {
