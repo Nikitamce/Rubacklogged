@@ -25,6 +25,8 @@ let cachedPriceOverview = null;
 let cachedItadPrice = null;
 let cachedConvertedLowest = null;
 
+let isGraphExpanded = false; // Collapsed by default (only header & 3 metric blocks visible)
+
 export function chartsMountAnchor() {
   const unifiedRow = document.querySelector('.blp-unified-rating-row');
   if (unifiedRow) return unifiedRow;
@@ -57,18 +59,26 @@ export function ensureSteamChartsMount(token = '') {
 
   row.innerHTML = `
     <div class="col">
-      <div class="backloggd-container center-container blp-charts-card">
+      <div class="backloggd-container center-container blp-charts-card ${isGraphExpanded ? '' : 'is-collapsed'}">
         <div class="blp-charts-header">
           <div class="blp-charts-title-wrap">
             <img class="blp-charts-icon" src="${favicon('steamdb.info')}" alt="" />
             <h3 class="blp-charts-title">${escapeHtml(t.steamChartsTitle)}</h3>
           </div>
-          <div class="blp-charts-tabs">
-            <button type="button" class="blp-charts-tab ${currentTab === 'online' ? 'is-active' : ''}" data-blp-tab="online">
-              ${escapeHtml(t.steamChartsTabOnline)}
-            </button>
-            <button type="button" class="blp-charts-tab ${currentTab === 'price' ? 'is-active' : ''}" data-blp-tab="price">
-              ${escapeHtml(t.steamChartsTabPrice)}
+          <div class="blp-charts-header-right">
+            <div class="blp-charts-tabs">
+              <button type="button" class="blp-charts-tab ${currentTab === 'online' ? 'is-active' : ''}" data-blp-tab="online">
+                ${escapeHtml(t.steamChartsTabOnline)}
+              </button>
+              <button type="button" class="blp-charts-tab ${currentTab === 'price' ? 'is-active' : ''}" data-blp-tab="price">
+                ${escapeHtml(t.steamChartsTabPrice)}
+              </button>
+            </div>
+            <button type="button" class="blp-charts-toggle-btn" data-blp-toggle-btn title="${escapeHtml(isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand)}">
+              <span data-blp-toggle-text>${escapeHtml(isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand)}</span>
+              <svg class="blp-charts-toggle-icon" viewBox="0 0 24 24">
+                <path d="M7 10l5 5 5-5z" />
+              </svg>
             </button>
           </div>
         </div>
@@ -77,18 +87,20 @@ export function ensureSteamChartsMount(token = '') {
           <!-- Injected via renderMetrics() -->
         </div>
 
-        <div class="blp-charts-graph-box" data-blp-graph-box>
-          <div class="blp-charts-empty">
-            <span class="blp-skeleton" style="width: 80%; height: 12px; border-radius: 4px;"></span>
+        <div class="blp-charts-collapsible" data-blp-collapsible>
+          <div class="blp-charts-graph-box" data-blp-graph-box>
+            <div class="blp-charts-empty">
+              <span class="blp-skeleton" style="width: 80%; height: 12px; border-radius: 4px;"></span>
+            </div>
+            <div class="blp-charts-tooltip" data-blp-tooltip></div>
           </div>
-          <div class="blp-charts-tooltip" data-blp-tooltip></div>
-        </div>
 
-        <div class="blp-charts-footer">
-          <span data-blp-footer-note>${escapeHtml(t.steamChartsOnline6m)}</span>
-          <a class="blp-charts-btn-steamdb" data-blp-steamdb-link href="${STEAMDB_APP_URL}/" target="_blank" rel="noopener noreferrer">
-            ${escapeHtml(t.steamChartsOpenSteamDb)} ↗
-          </a>
+          <div class="blp-charts-footer">
+            <span data-blp-footer-note>${escapeHtml(t.steamChartsOnline6m)}</span>
+            <a class="blp-charts-btn-steamdb" data-blp-steamdb-link href="${STEAMDB_APP_URL}/" target="_blank" rel="noopener noreferrer">
+              ${escapeHtml(t.steamChartsOpenSteamDb)} ↗
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -96,6 +108,26 @@ export function ensureSteamChartsMount(token = '') {
 
   // Insert right below unified rating (or before game-stats)
   anchor.insertAdjacentElement('afterend', row);
+
+  // Toggle button event
+  const card = row.querySelector('.blp-charts-card');
+  const toggleBtn = row.querySelector('[data-blp-toggle-btn]');
+  const toggleText = row.querySelector('[data-blp-toggle-text]');
+
+  if (toggleBtn && card) {
+    toggleBtn.addEventListener('click', () => {
+      isGraphExpanded = !isGraphExpanded;
+      card.classList.toggle('is-collapsed', !isGraphExpanded);
+      if (toggleText) {
+        toggleText.textContent = isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand;
+      }
+      toggleBtn.title = isGraphExpanded ? t.steamChartsCollapse : t.steamChartsExpand;
+
+      if (isGraphExpanded) {
+        renderCurrentTab(row);
+      }
+    });
+  }
 
   // Tab switching events
   row.querySelectorAll('.blp-charts-tab').forEach((tabBtn) => {

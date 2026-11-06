@@ -278,6 +278,8 @@ export default {
   steamChartsOpenSteamDb: 'Open on SteamDB',
   steamChartsPriceHistoryNotice: 'Price history logged from visits and ITAD database',
   steamChartsNoData: 'No chart data available',
+  steamChartsExpand: 'Show chart',
+  steamChartsCollapse: 'Hide chart',
   showSteamDbDetails: 'Show SteamDB details',
   showSteamDbDetailsHint:
     'One SteamDB row: franchise and systems from Steam; technologies and last record update from SteamDB when reachable.',

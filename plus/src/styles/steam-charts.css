@@ -47,6 +47,12 @@
   margin: 0;
 }
 
+.blp-charts-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .blp-charts-tabs {
   display: flex;
   gap: 0.35rem;
@@ -54,6 +60,46 @@
   padding: 3px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.blp-charts-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--blp-muted, #9aa0a6);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.blp-charts-toggle-btn:hover {
+  color: var(--blp-text, #e8eaed);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.blp-charts-toggle-icon {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.blp-charts-card.is-collapsed .blp-charts-toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.blp-charts-card.is-collapsed .blp-charts-collapsible {
+  display: none !important;
+}
+
+.blp-charts-card.is-collapsed .blp-charts-metrics {
+  margin-bottom: 0;
 }
 
 .blp-charts-tab {
