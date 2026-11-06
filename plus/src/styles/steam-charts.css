@@ -81,9 +81,15 @@
 
 .blp-charts-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   margin-bottom: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .blp-charts-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
 }
 
 .blp-charts-metric-tile {
