@@ -172,8 +172,8 @@ export async function fetchItadPriceHistory(appId, country = 'US') {
     const gameId = lookupData?.game?.id;
     if (!gameId) return asCacheMiss([]);
 
-    // 2. Fetch price change history for the last 2 years
-    const sinceDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString();
+    // 2. Fetch price change history for the last 2 years (ITAD expects ISO without milliseconds: YYYY-MM-DDTHH:mm:ssZ)
+    const sinceDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
     const historyRes = await gmRequest({
       url: `https://api.isthereanydeal.com/games/history/v2?key=${ITAD_API_KEY}&id=${encodeURIComponent(gameId)}&since=${encodeURIComponent(sinceDate)}`,
       method: 'GET',
