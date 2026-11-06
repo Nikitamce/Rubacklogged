@@ -2108,7 +2108,6 @@
     'Default': 'По умолчанию',
     'Enabled': 'Включено',
     'Disabled': 'Выключено',
-    'On': 'Вкл.',
     'Off': 'Выкл.',
     'General': 'Общие',
     'Appearance': 'Оформление',
@@ -3434,6 +3433,34 @@
       },
     },
     {
+      // "Completed on PlayStation 5", "Played on PC (Windows)"
+      re: /^(Completed|Played|Playing|Shelved|Abandoned|Retired|Logged|Reviewed)\s+(?:on|On)\s+(.+)$/i,
+      replace: (match, status, platform) => {
+        // If the rest starts with a date pattern (e.g. "30 окт 2026", "Oct 15, 2024"), don't treat as platform
+        if (/^(?:\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|янв|фев|мар|апр|май|июн|июл|авг|сен|окт|ноя|дек)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|янв|фев|мар|апр|май|июн|июл|авг|сен|окт|ноя|дек)[a-zа-яё]*\s+\d{1,2})/i.test(platform)) {
+          return match;
+        }
+        const statusMap = {
+          completed: 'Пройдено',
+          played: 'Сыграно',
+          playing: 'Играю',
+          shelved: 'Отложено',
+          abandoned: 'Брошено',
+          retired: 'Остановлено',
+          logged: 'Записано',
+          reviewed: 'Рецензия',
+        };
+        const s = statusMap[status.toLowerCase()] || status;
+        const p = strings[platform] || platform;
+        return `${s} на ${p}`;
+      },
+    },
+    {
+      // "On PlayStation 5", "on Steam"
+      re: /^(?:on|On)\s+([A-Za-z0-9\s()|]+)$/,
+      replace: (match, platform) => `на ${strings[platform] || platform}`,
+    },
+    {
       // Fallback for "Reviewed on 30 окт 2026", "Earned on 18 окт 2026" or any already partially localized date
       re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released|Earned|Joined)\s+on\s+(.+)$/i,
       replace: (match, action, rest) => {
@@ -3599,6 +3626,14 @@
 
   const contexts = [
     {
+      // Settings toggles and switches: "On" / "Off"
+      selector: '#settings-body, .settings-page, .form-check, .custom-switch, .toggle-container',
+      map: {
+        'On': 'Вкл.',
+        'Off': 'Выкл.',
+      },
+    },
+    {
       // Badge name: "Popular" -> "Популярность" (instead of "Популярные")
       selector: '.badge-title, .badges, .backlog-badge-cus-col, .badge-details, .badge-card',
       map: {
@@ -3641,6 +3676,15 @@
       selector: '.review-details .filler-text',
       map: {
         'on': 'на',
+        'On': 'на',
+      },
+    },
+    {
+      // Review / log / activity card connector: "Completed on PlayStation 5"
+      selector: '.filler-text, .review-details, .review-sub-title, .review-card, .log-entry, .journal-entry, .feed-item, .activity-item, .log-status-container, .review-meta, .game-review, .text-muted, .review-row',
+      map: {
+        'on': 'на',
+        'On': 'на',
       },
     },
     {

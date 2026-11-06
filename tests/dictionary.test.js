@@ -53,6 +53,7 @@ test('no duplicate keys in the source object literal', () => {
 test('no leftover v1 fragment or round-trip keys', () => {
   const forbidden = [
     'on', // handled only by the review-card context
+    'On', // handled only by the review-card context / settings context
     'Favorite Игры',
     'Personal Оценки',
     'Recently Оценено',

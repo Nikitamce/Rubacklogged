@@ -133,6 +133,28 @@ function createEngine(code, dict) {
       if (text === 'Popular' && el?.closest?.('.badge-title, .badges, .backlog-badge-cus-col, .badge-details, .badge-card, [href*="/badges"]')) {
         return preserveEdges(raw, 'Популярность');
       }
+      if (text === 'on' || text === 'On') {
+        if (el?.closest?.('#settings-body, .settings-page, .form-check, .custom-switch, .toggle-container')) {
+          return preserveEdges(raw, 'Вкл.');
+        }
+        return preserveEdges(raw, 'на');
+      }
+      const statusOnPlat = text.match(/^(Completed|Played|Playing|Shelved|Abandoned|Retired|Logged|Reviewed)\s+(?:on|On)\s+(.+)$/i);
+      if (statusOnPlat) {
+        const statusMap = {
+          completed: 'Пройдено',
+          played: 'Сыграно',
+          playing: 'Играю',
+          shelved: 'Отложено',
+          abandoned: 'Брошено',
+          retired: 'Остановлено',
+          logged: 'Записано',
+          reviewed: 'Рецензия',
+        };
+        const s = statusMap[statusOnPlat[1].toLowerCase()] || statusOnPlat[1];
+        const p = dict[statusOnPlat[2]] || statusOnPlat[2];
+        return preserveEdges(raw, `${s} на ${p}`);
+      }
       if (/^owned,\s*subscription,/i.test(text)) return preserveEdges(raw, 'своя копия, подписка…');
       if (/^Added in (.+)$/i.test(text)) return preserveEdges(raw, `Добавлено в ${text.replace(/^Added in\s+/i, '')}`);
       if (/^you currently have no lists\b/i.test(text)) {
@@ -189,7 +211,7 @@ function createEngine(code, dict) {
     if (likedReviews) return preserveEdges(raw, `${countRepl(likedReviews[1], 'Reviews')}, которые лайкнул ${likedReviews[2]}`);
     const byName = text.match(/^by\s+(\S+)$/);
     if (byName) return preserveEdges(raw, `от ${byName[1]}`);
-    const onPlat = text.match(/^on\s+(.+)$/);
+    const onPlat = text.match(/^(?:on|On)\s+(.+)$/);
     if (onPlat) return preserveEdges(raw, `на ${dict[onPlat[1]] || onPlat[1]}`);
     const crackedIn = text.match(/^Cracked in (\d+) day\(s\)$/i);
     if (crackedIn) {

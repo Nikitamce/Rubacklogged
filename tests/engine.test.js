@@ -79,7 +79,11 @@ test('applies context-specific wording', () => {
   assert.equal(translator.translate('Register', { element: withContext('button') }), 'Зарегистрироваться');
   assert.equal(translator.translate('Register'), 'Регистрация');
   assert.equal(translator.translate('on', { element: withContext('.review-details .filler-text') }), 'на');
+  assert.equal(translator.translate('On', { element: withContext('.review-details .filler-text') }), 'на');
+  assert.equal(translator.translate('On', { element: withContext('#settings-body, .settings-page, .form-check, .custom-switch, .toggle-container') }), 'Вкл.');
   assert.equal(translator.translate('on'), null);
+  assert.equal(translator.translate('Completed on PlayStation 5'), 'Пройдено на PlayStation 5');
+  assert.equal(translator.translate('Played on PC (Windows)'), 'Сыграно на PC (Windows)');
 });
 
 test('pluralizes counts', () => {
