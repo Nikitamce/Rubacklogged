@@ -119,6 +119,10 @@ test('formats dates', () => {
   assert.equal(translator.translate('May 2025'), 'Май 2025');
   assert.equal(translator.translate('February, 2025'), 'Февраль 2025');
   assert.equal(translator.translate('Nov 01'), '1 ноября');
+  assert.equal(translator.translate('Reviewed on 30 Oct 2026'), 'Рецензия от 30 окт. 2026');
+  assert.equal(translator.translate('Reviewed on 30 окт 2026'), 'Рецензия от 30 окт. 2026');
+  assert.equal(translator.translate('Reviewed on Nov 01, 2026'), 'Рецензия от 1 нояб. 2026');
+  assert.equal(translator.translate('Reviewed on'), 'Рецензия от');
   assert.equal(translator.translate('Avg 3.5★'), 'Ср. 3,5★');
 });
 

@@ -155,6 +155,16 @@ function createEngine(code, dict) {
     if (month) return preserveEdges(raw, `${month[2]} ${months[month[1]]}${month[3] ? ` ${month[3]}` : ''}`);
     const monthLong = text.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/);
     if (monthLong) return preserveEdges(raw, `${monthLong[2]} ${monthsFull[monthLong[1]]} ${monthLong[3]}`);
+    const dayMonth = text.match(/^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:,\s*|\s+)?(\d{4})?$/i);
+    if (dayMonth) {
+      const mKey = dayMonth[2].charAt(0).toUpperCase() + dayMonth[2].slice(1).toLowerCase();
+      return preserveEdges(raw, `${dayMonth[1]} ${months[mKey] || dayMonth[2]}${dayMonth[3] ? ` ${dayMonth[3]}` : ''}`);
+    }
+    const dayMonthLong = text.match(/^(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)(?:,\s*|\s+)?(\d{4})?$/i);
+    if (dayMonthLong) {
+      const mKey = dayMonthLong[2].charAt(0).toUpperCase() + dayMonthLong[2].slice(1).toLowerCase();
+      return preserveEdges(raw, `${dayMonthLong[1]} ${monthsFull[mKey] || dayMonthLong[2]}${dayMonthLong[3] ? ` ${dayMonthLong[3]}` : ''}`);
+    }
     const namedMonth = text.match(/^(January|February|March|April|May|June|July|August|September|October|November|December),\s+(\d{4})$/);
     if (namedMonth) {
       const names = { January: 'январь', February: 'февраль', March: 'март', April: 'апрель', May: 'май', June: 'июнь', July: 'июль', August: 'август', September: 'сентябрь', October: 'октябрь', November: 'ноябрь', December: 'декабрь' };
@@ -184,8 +194,28 @@ function createEngine(code, dict) {
     }
     const playedIn = text.match(/^Played in (\d{4})$/);
     if (playedIn) return preserveEdges(raw, `Сыграно в ${playedIn[1]}`);
-    const earned = text.match(/^(Earned|Joined) on (.+)$/);
-    if (earned) return preserveEdges(raw, `${earned[1] === 'Earned' ? 'Получено' : 'На сайте с'} ${earned[2]}`);
+    const actionDate = text.match(/^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(.+)$/i);
+    if (actionDate) {
+      const actionMap = {
+        reviewed: 'Рецензия от',
+        logged: 'Записано',
+        played: 'Сыграно',
+        added: 'Добавлено',
+        written: 'Написано',
+        created: 'Создано',
+        updated: 'Обновлено',
+        released: 'Выпущено',
+      };
+      const act = actionMap[actionDate[1].toLowerCase()] || actionDate[1];
+      const datePart = translateText(actionDate[2], el) || actionDate[2];
+      return preserveEdges(raw, `${act} ${datePart}`);
+    }
+    const earned = text.match(/^(Earned|Joined)\s+on\s+(.+)$/i);
+    if (earned) {
+      const verb = earned[1].toLowerCase() === 'earned' ? 'Получено' : 'На сайте с';
+      const datePart = translateText(earned[2], el) || earned[2];
+      return preserveEdges(raw, `${verb} ${datePart}`);
+    }
     if (/^[‹«<]\s*Prev$/i.test(text)) return preserveEdges(raw, '‹ Назад');
     if (/^Next\s*[›»>]$/i.test(text)) return preserveEdges(raw, 'Далее ›');
     return null;

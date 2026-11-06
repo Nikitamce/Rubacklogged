@@ -109,18 +109,18 @@
   };
 
   const MONTH_ALIASES = {
-    jan: 'jan', january: 'jan',
-    feb: 'feb', february: 'feb',
-    mar: 'mar', march: 'mar',
-    apr: 'apr', april: 'apr',
-    may: 'may',
-    jun: 'jun', june: 'jun',
-    jul: 'jul', july: 'jul',
-    aug: 'aug', august: 'aug',
-    sep: 'sep', sept: 'sep', september: 'sep',
-    oct: 'oct', october: 'oct',
-    nov: 'nov', november: 'nov',
-    dec: 'dec', december: 'dec',
+    jan: 'jan', january: 'jan', 'янв': 'jan', 'янв.': 'jan', 'января': 'jan', 'январь': 'jan',
+    feb: 'feb', february: 'feb', 'фев': 'feb', 'февр': 'feb', 'февр.': 'feb', 'февраля': 'feb', 'февраль': 'feb',
+    mar: 'mar', march: 'mar', 'мар': 'mar', 'мар.': 'mar', 'марта': 'mar', 'март': 'mar',
+    apr: 'apr', april: 'apr', 'апр': 'apr', 'апр.': 'apr', 'апреля': 'apr', 'апрель': 'apr',
+    may: 'may', 'мая': 'may', 'май': 'may',
+    jun: 'jun', june: 'jun', 'июн': 'jun', 'июн.': 'jun', 'июня': 'jun', 'июнь': 'jun',
+    jul: 'jul', july: 'jul', 'июл': 'jul', 'июл.': 'jul', 'июля': 'jul', 'июль': 'jul',
+    aug: 'aug', august: 'aug', 'авг': 'aug', 'авг.': 'aug', 'августа': 'aug', 'август': 'aug',
+    sep: 'sep', sept: 'sep', september: 'sep', 'сен': 'sep', 'сент': 'sep', 'сент.': 'sep', 'сентября': 'sep', 'сентябрь': 'sep',
+    oct: 'oct', october: 'oct', 'окт': 'oct', 'окт.': 'oct', 'октября': 'oct', 'октябрь': 'oct',
+    nov: 'nov', november: 'nov', 'ноя': 'nov', 'нояб': 'nov', 'нояб.': 'nov', 'ноября': 'nov', 'ноябрь': 'nov',
+    dec: 'dec', december: 'dec', 'дек': 'dec', 'дек.': 'dec', 'декабря': 'dec', 'декабрь': 'dec',
   };
 
   function monthInfo(name) {
@@ -3168,6 +3168,15 @@
     'PlayStation 4': 'PlayStation 4',
     'Xbox One': 'Xbox One',
 
+    // Action prefixes
+    'Reviewed on': 'Рецензия от',
+    'Logged on': 'Записано',
+    'Added on': 'Добавлено',
+    'Written on': 'Написано',
+    'Created on': 'Создано',
+    'Updated on': 'Обновлено',
+    'Released on': 'Выпущено',
+
     // Document titles
     'Backloggd - A Video Game Collection Tracker': 'Backloggd — трекер игровой коллекции',
   };
@@ -3293,10 +3302,12 @@
       },
     },
     {
-      // "Reviewed on Nov 01, 2026", "Logged on October 15, 2026", "Played on..."
-      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:,\s*|\s+)(\d{4})$/i,
-      replace: (match, action, rawMonth, rawDay, year) => {
-        const month = monthInfo(rawMonth);
+      // "Reviewed on Nov 01, 2026", "Reviewed on 30 Oct 2026", "Reviewed on 30 окт 2026"
+      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(?:([A-Za-zА-Яа-яёЁ.]+)\s+(\d{1,2})|(\d{1,2})\s+([A-Za-zА-Яа-яёЁ.]+))(?:,\s*|\s+)?(\d{4})?$/i,
+      replace: (match, action, m1, d1, d2, m2, year) => {
+        const rawMonth = m1 || m2;
+        const rawDay = d1 || d2;
+        const month = monthInfo(rawMonth.replace(/\.$/, '')) || monthInfo(rawMonth);
         if (!month) return match;
         const actionMap = {
           reviewed: 'Рецензия от',
@@ -3309,13 +3320,34 @@
           released: 'Выпущено',
         };
         const act = actionMap[action.toLowerCase()] || action;
-        return `${act} ${Number(rawDay)} ${month.short} ${year}`;
+        const yearPart = year ? ` ${year}` : '';
+        return `${act} ${Number(rawDay)} ${month.short}${yearPart}`;
       },
     },
     {
-      // "| Nov 01, 2026", "Nov 01, 2026", "October 15, 2026"
-      re: /^(\|\s*)?(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})(?:,\s*|\s+)(\d{4})$/i,
-      replace: (match, prefix, rawMonth, rawDay, year) => {
+      // Fallback for "Reviewed on 30 окт 2026" or any already partially localized or custom-formatted date
+      re: /^(Reviewed|Logged|Played|Added|Written|Created|Updated|Released)\s+on\s+(.+)$/i,
+      replace: (match, action, rest) => {
+        const actionMap = {
+          reviewed: 'Рецензия от',
+          logged: 'Записано',
+          played: 'Сыграно',
+          added: 'Добавлено',
+          written: 'Написано',
+          created: 'Создано',
+          updated: 'Обновлено',
+          released: 'Выпущено',
+        };
+        const act = actionMap[action.toLowerCase()] || action;
+        return `${act} ${rest}`;
+      },
+    },
+    {
+      // "| Nov 01, 2026", "Nov 01, 2026", "October 15, 2026", or "30 Oct 2026"
+      re: /^(\|\s*)?(?:(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})|(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?))(?:,\s*|\s+)(\d{4})$/i,
+      replace: (match, prefix, m1, d1, d2, m2, year) => {
+        const rawMonth = m1 || m2;
+        const rawDay = d1 || d2;
         const month = monthInfo(rawMonth);
         if (!month) return match;
         return `${prefix || ''}${Number(rawDay)} ${month.short} ${year}`;
