@@ -31,7 +31,12 @@
     "*://*.gogdb.org/*",
     "*://*.jsdelivr.net/*",
     "*://*.pages.dev/*",
-    "*://translate.googleapis.com/*"
+    "*://translate.googleapis.com/*",
+    "*://*.metacritic.com/*",
+    "*://*.duckduckgo.com/*",
+    "*://opencritic-api.p.rapidapi.com/*",
+    "*://steamcommunity.com/*",
+    "*://*.howlongtobeat.com/*"
   ],
   "background": {
     "service_worker": "background.js"

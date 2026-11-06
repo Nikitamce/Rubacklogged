@@ -325,6 +325,10 @@ function createEngine(code, dict) {
     }
     const singleRevLikes = text.match(/^Gained\s+(\d+)\+?\s+likes\s+on\s+a\s+single\s+review$/i);
     if (singleRevLikes) return preserveEdges(raw, `Получено ${singleRevLikes[1]}+ лайков на одной рецензии`);
+    const likedGamesMilestone = text.match(/^Liked\s+(\d+)\+?\s+games$/i);
+    if (likedGamesMilestone) return preserveEdges(raw, `Понравилось ${likedGamesMilestone[1]}+ игр`);
+    const likeGamesMilestone = text.match(/^Like\s+(\d+)\+?\s+games$/i);
+    if (likeGamesMilestone) return preserveEdges(raw, `Поставьте лайк ${likeGamesMilestone[1]} играм`);
     if (/^[‹«<]\s*Prev$/i.test(text)) return preserveEdges(raw, '‹ Назад');
     if (/^Next\s*[›»>]$/i.test(text)) return preserveEdges(raw, 'Далее ›');
     return null;
