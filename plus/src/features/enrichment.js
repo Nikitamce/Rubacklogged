@@ -1,6 +1,7 @@
 import { formatConvertedSalePair } from '../api/fx.js';
 import { fetchGameStatus, renderGameStatusValues } from '../api/gamestatus.js';
 import { fetchHltb, formatHoursCompact } from '../api/hltb.js';
+import { fetchMetacriticScore } from '../api/metacritic.js';
 import { fetchOpenCritic } from '../api/opencritic.js';
 import { fetchProtonDb } from '../api/protondb.js';
 import {
@@ -1185,9 +1186,12 @@ export function renderEnrichment(rows, { steam, links, error, owned = false, wis
   }
 
   if (rows.metacritic) {
-    const score = steam?.metacritic?.score;
+    const score = steam?.metacritic?.score ?? metacritic?.score;
     if (score != null && !error) {
-      setRowValues(rows.metacritic, renderMetacriticBadge(score, metacriticGameUrl(title, slug)));
+      setRowValues(
+        rows.metacritic,
+        renderMetacriticBadge(score, metacritic?.url || metacriticGameUrl(title, slug))
+      );
       showRow(rows.metacritic);
       paintDebugCacheMark(rows.metacritic, getCacheSource(steam) || 'miss');
     } else {
@@ -1390,6 +1394,7 @@ export async function enrichGamePage() {
     gamestatus: cachedPage.gamestatus || null,
     steamDb: cachedPage.steamDb || null,
     opencritic: cachedPage.opencritic || null,
+    metacritic: cachedPage.metacritic || null,
     hltb: cachedPage.hltb || null,
     proton: cachedPage.proton || null,
     error: false,
@@ -1529,6 +1534,7 @@ export async function enrichGamePage() {
       slug: ctx.slug,
       steamDb: state.steamDb,
       opencritic: state.opencritic,
+      metacritic: state.metacritic,
       hltb: state.hltb,
       proton: state.proton,
     });
@@ -1714,6 +1720,28 @@ export async function enrichGamePage() {
             if (!stillHere()) return;
             state.hltb = { missing: true };
             paintHltb();
+          })
+      );
+    }
+    if (settings.showMetacritic) {
+      scoreJobs.push(
+        fetchMetacriticScore(title, ctx.slug)
+          .then((mc) => {
+            if (!stillHere()) return;
+            state.metacritic = mc || { missing: true };
+            if (rows.metacritic && state.steam?.metacritic?.score == null && mc?.score != null) {
+              setRowValues(
+                rows.metacritic,
+                renderMetacriticBadge(mc.score, mc.url || metacriticGameUrl(title, ctx.slug))
+              );
+              showRow(rows.metacritic);
+            }
+            updateUnifiedRatingWidget(state);
+          })
+          .catch(() => {
+            if (!stillHere()) return;
+            state.metacritic = { missing: true };
+            updateUnifiedRatingWidget(state);
           })
       );
     }

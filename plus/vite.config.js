@@ -87,6 +87,8 @@ export default defineConfig({
           'cdn.jsdelivr.net',
           'latest.currency-api.pages.dev',
           'translate.googleapis.com',
+          'www.metacritic.com',
+          'metacritic.com',
         ],
         'run-at': 'document-idle',
         noframes: true,

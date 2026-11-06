@@ -55,6 +55,8 @@
 // @connect            cdn.jsdelivr.net
 // @connect            latest.currency-api.pages.dev
 // @connect            translate.googleapis.com
+// @connect            www.metacritic.com
+// @connect            metacritic.com
 // @grant              GM_addStyle
 // @grant              GM_addValueChangeListener
 // @grant              GM_getValue

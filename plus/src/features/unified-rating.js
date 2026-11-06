@@ -256,7 +256,11 @@ export function updateUnifiedRatingWidget(state) {
   const backloggd5 = getBackloggdAvgRating5FromDom();
   const steamPct100 = state?.steam?.reviews ? steamReviewsToPercent100(state.steam.reviews) : null;
   const metacritic100 =
-    state?.steam?.metacritic?.score != null ? sanitize0to100Score(state.steam.metacritic.score) : null;
+    state?.steam?.metacritic?.score != null
+      ? sanitize0to100Score(state.steam.metacritic.score)
+      : state?.metacritic?.score != null
+      ? sanitize0to100Score(state.metacritic.score)
+      : null;
   const opencritic100 =
     state?.opencritic?.score != null ? sanitize0to100Score(state.opencritic.score) : null;
 
@@ -266,8 +270,9 @@ export function updateUnifiedRatingWidget(state) {
   const steamUrl = state?.steam?.appId
     ? `https://store.steampowered.com/app/${state.steam.appId}/#app_reviews_hash`
     : '';
-  const metacriticUrl = metacriticGameUrl(getGameTitle(), slug);
+  const metacriticUrl = state?.metacritic?.url || metacriticGameUrl(getGameTitle(), slug);
   const opencriticUrl = state?.opencritic?.url || '';
+  const mcSettled = steamSettled || state?.metacritic !== undefined;
 
   const providers = [
     {
@@ -283,7 +288,7 @@ export function updateUnifiedRatingWidget(state) {
       label: t.unifiedRatingMetacritic,
       display: metacritic100 != null ? String(metacritic100) : null,
       score5: metacritic100 != null ? metacritic100 / 20 : null,
-      status: !steamSettled ? 'loading' : metacritic100 != null ? 'ready' : 'missing',
+      status: !mcSettled ? 'loading' : metacritic100 != null ? 'ready' : 'missing',
       url: metacriticUrl,
     },
     {
