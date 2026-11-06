@@ -371,8 +371,9 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
 
   const [onlineRes, itadRes] = await Promise.all([onlinePromise, itadPromise]);
 
-  cachedOnlinePoints = onlineRes?.data || [];
-  cachedItadPrice = itadRes?.data || null;
+  // onlinePromise returns Array directly (decorated with _cache property by asCacheMiss)
+  cachedOnlinePoints = Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []);
+  cachedItadPrice = itadRes?.lowest ? itadRes : (itadRes?.data || null);
 
   // Build price points from local history + ITAD lowest
   const localHistory = getLocalPriceHistory(appId, settings.steamCountry);
