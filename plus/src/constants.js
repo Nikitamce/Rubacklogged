@@ -102,7 +102,8 @@ export const CACHE_SOFT_LIMIT_BYTES = 5 * 1024 * 1024;
 export const STEAM_SEARCH_URL = 'https://store.steampowered.com/api/storesearch/';
 export const STEAM_SUGGEST_URL = 'https://store.steampowered.com/search/suggest';
 export const STEAM_DETAILS_URL = 'https://store.steampowered.com/api/appdetails';
-export const STEAM_REVIEWS_URL = 'https://store.steampowered.com/appreviews';
+export const STEAM_REVIEWS_URL =
+  'https://api.steampowered.com/IUserReviewsService/GetAppReviews/v1/';
 export const STEAM_USERDATA_URL = 'https://store.steampowered.com/dynamicstore/userdata/';
 export const STEAM_POPULAR_TAGS_URL = 'https://store.steampowered.com/tagdata/populartags/english';
 export const STEAM_STORE_ITEMS_URL = 'https://api.steampowered.com/IStoreBrowseService/GetItems/v1/';

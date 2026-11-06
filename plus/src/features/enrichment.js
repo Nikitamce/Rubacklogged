@@ -760,16 +760,40 @@ export function renderSteamValues(steam, { owned = false, wishlist = false, slug
     parts.push({ html: priceHtml });
   }
 
-  const reviewText = formatReviewPercent(steam.reviews);
   const reviewClass = reviewScoreClass(steam.reviews);
-  if (reviewText) {
+  const positiveCount =
+    steam.reviews?.total_positive != null
+      ? steam.reviews.total_positive
+      : steam.recommendations != null
+      ? steam.recommendations
+      : null;
+  const pct =
+    steam.reviews?.total_reviews && steam.reviews.total_positive != null
+      ? Math.round((steam.reviews.total_positive / steam.reviews.total_reviews) * 100)
+      : null;
+
+  if (positiveCount != null) {
+    const n = positiveCount.toLocaleString();
+    const text =
+      pct != null && t.recommendationsWithPercent
+        ? fmt(t.recommendationsWithPercent, { n, pct })
+        : fmt(t.recommendations, { n });
+    const scoreDesc = steam.reviews?.review_score_desc || '';
+    const tooltip =
+      scoreDesc && steam.reviews?.total_reviews
+        ? `${scoreDesc}${pct != null ? ` (${pct}% из ${steam.reviews.total_reviews.toLocaleString()} отзывов)` : ''}`
+        : scoreDesc || '';
+
     parts.push({
-      html: `<a class="game-details-value ${reviewClass}" href="${escapeAttr(steam.storeUrl)}#app_reviews_hash" target="_blank" rel="noopener noreferrer">${escapeHtml(reviewText)}</a>`,
+      html: `<a class="game-details-value ${reviewClass}" href="${escapeAttr(steam.storeUrl)}#app_reviews_hash" target="_blank" rel="noopener noreferrer"${tooltip ? ` title="${escapeAttr(tooltip)}"` : ''}>${escapeHtml(text)}</a>`,
     });
-  } else if (steam.recommendations) {
-    parts.push({
-      html: `<span class="game-details-value ${reviewClass}">${escapeHtml(fmt(t.recommendations, { n: steam.recommendations.toLocaleString() }))}</span>`,
-    });
+  } else if (steam.reviews) {
+    const reviewText = formatReviewPercent(steam.reviews);
+    if (reviewText) {
+      parts.push({
+        html: `<a class="game-details-value ${reviewClass}" href="${escapeAttr(steam.storeUrl)}#app_reviews_hash" target="_blank" rel="noopener noreferrer">${escapeHtml(reviewText)}</a>`,
+      });
+    }
   }
 
   if (steam.usedUsFallback) {

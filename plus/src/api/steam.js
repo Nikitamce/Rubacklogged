@@ -530,9 +530,11 @@ export async function hydrateSteamApp({
   const detailsUrl =
     `${STEAM_DETAILS_URL}?appids=${id}` +
     `&cc=${encodeURIComponent(detailsCountry)}&l=english`;
-  const reviewsUrl =
-    `${STEAM_REVIEWS_URL}/${id}?json=1&language=all` +
-    `&purchase_type=all&num_per_page=0`;
+  const reviewsInput = JSON.stringify({
+    appid: id,
+    num_per_page: 0,
+  });
+  const reviewsUrl = `${STEAM_REVIEWS_URL}?input_json=${encodeURIComponent(reviewsInput)}`;
   debug.detailsUrl = detailsUrl;
   debug.reviewsUrl = reviewsUrl;
   debug.manualOverride = Boolean(manualOverride);
@@ -596,9 +598,11 @@ export async function hydrateSteamApp({
     debug.reason = details
       ? `Matched Steam app ${id} (${sourceBits.join(', ')})`
       : `App ${id} resolved, but appdetails success=false`;
+    const querySummary =
+      reviews?.response?.query_summary || reviews?.query_summary || null;
     debug.detailsSuccess = Boolean(detailsRoot?.[id]?.success);
     debug.detailsCountry = detailsCountry;
-    debug.reviews = reviews?.query_summary || null;
+    debug.reviews = querySummary;
     debug.tags = tags;
     debug.categories = normalizeSteamCategories(details);
     debug.extras = extras;
@@ -615,7 +619,7 @@ export async function hydrateSteamApp({
       metacritic:
         details?.metacritic || (hit?.metascore ? { score: Number(hit.metascore) } : null),
       recommendations: details?.recommendations?.total || null,
-      reviews: reviews?.query_summary || null,
+      reviews: querySummary,
       tags,
       categories: normalizeSteamCategories(details),
       deckCompat: extras?.deckCompat ?? null,

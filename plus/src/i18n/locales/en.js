@@ -494,6 +494,7 @@ export default {
   discountEnds: 'ends {date}',
   steamUsFallback: 'Found via US store ({cc} search returned nothing)',
   recommendations: '{n} recommendations',
+  recommendationsWithPercent: '{n} recommend ({pct}%)',
   links: 'Links',
   linkIgdb: 'IGDB',
   linkSteam: 'Steam',

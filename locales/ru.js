@@ -68,6 +68,7 @@
     Follower: ['подписчик', 'подписчика', 'подписчиков'],
     Following: ['подписка', 'подписки', 'подписок'],
     Comment: ['комментарий', 'комментария', 'комментариев'],
+    Recommendation: ['рекомендует', 'рекомендуют', 'рекомендуют'],
   };
 
   const UNIT_KEYS = {
@@ -88,6 +89,8 @@
     Following: 'Following',
     Comment: 'Comment',
     Comments: 'Comment',
+    Recommendation: 'Recommendation',
+    Recommendations: 'Recommendation',
   };
 
   const MONTHS = {
@@ -3211,7 +3214,7 @@
     },
     {
       // "1.2K Likes", "3.9K Plays"
-      re: /^([\d][\d.,]*)\s*([KMB])\s+(Games?|Likes?|Reviews?|Lists?|Ratings?|Plays?|Followers?|Following|Comments?)$/i,
+      re: /^([\d][\d.,]*)\s*([KMB])\s+(Games?|Likes?|Reviews?|Lists?|Ratings?|Plays?|Followers?|Following|Comments?|Recommendations?)$/i,
       replace: (match, rawNumber, suffix, rawUnit) => {
         const unit = UNIT_KEYS[rawUnit];
         const count = parseCompactNumber(rawNumber, suffix);
@@ -3221,7 +3224,7 @@
     },
     {
       // "326,452 Games", "1 Like", "11 Likes"
-      re: /^([\d][\d\s.,]*?)\s+(Games?|Likes?|Reviews?|Lists?|Ratings?|Plays?|Followers?|Following|Comments?)$/i,
+      re: /^([\d][\d\s.,]*?)\s+(Games?|Likes?|Reviews?|Lists?|Ratings?|Plays?|Followers?|Following|Comments?|Recommendations?)$/i,
       replace: (match, rawNumber, rawUnit) => {
         const unit = UNIT_KEYS[rawUnit];
         const count = parsePlainNumber(rawNumber);
@@ -3446,7 +3449,7 @@
     },
     {
       // Sidebar CTA is narrow: use a compact wording instead of the long
-      selector: '#interaction-sidebar, .col-game-sidebar, #game-body, #game-profile, .game-page, .game-cover, .btn-main',
+      selector: '#interaction-sidebar, .game-cover',
       map: {
         'Log': 'Запись',
         'or review': '/ рецензия',
