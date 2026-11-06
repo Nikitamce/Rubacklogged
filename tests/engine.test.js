@@ -125,6 +125,8 @@ test('formats dates', () => {
   assert.equal(translator.translate('Reviewed on'), 'Рецензия от');
   assert.equal(translator.translate('Log history'), 'История записей');
   assert.equal(translator.translate('Logs'), 'Записи');
+  assert.equal(translator.translate('LOG STATUS'), 'СТАТУС ЗАПИСИ');
+  assert.equal(translator.translate('Log Status'), 'Статус записи');
   assert.equal(translator.translate('PLATFORMS PLAYED'), 'СЫГРАНО НА ПЛАТФОРМАХ');
   assert.equal(translator.translate('No play sessions logged'), 'Нет записанных игровых сессий');
   assert.equal(translator.translate('First Time'), 'Первое прохождение');
