@@ -50,6 +50,7 @@ import {
 import { syncExportButton, removeExportUi } from './export-game.js';
 import { readBackloggdGameId, removeGameIdUi, syncGameIdUi } from './game-id.js';
 import { ensureUnifiedRatingWidget, updateUnifiedRatingWidget } from './unified-rating.js';
+import { applySteamChartsData, ensureSteamChartsMount, removeSteamChartsWidget } from './steam-charts-ui.js';
 import { getIgdbUrl, getPageContext, getGameTitle } from './page.js';
 import { cacheSourceLabel, paintDebugCacheMark } from './debug-cache.js';
 
@@ -1293,12 +1294,13 @@ export async function enrichGamePage() {
     return;
   }
 
-  const token = `${ctx.slug}|${title}|${settings.steamCountry}|${settings.showSteam}|${settings.showSteamOwned}|${settings.showSteamWishlist}|${settings.showSteamTags}|${settings.showSteamCategories}|${settings.showMetacritic}|${settings.showOpenCritic}|${settings.showHltb}|${settings.showDeckProton}|${settings.showGameStatus}|${settings.showLinks}|${settings.showSteamDbIcon}|${settings.showSteamDbCover}|${settings.showSteamDbGallery}|${settings.showSteamDbDetails}|${settings.showSimilarGames}|${settings.showGameStats}|${settings.showSteamPlayers}|${settings.showExport}|${settings.showGameId}|${getSteamOverride(ctx.slug) || ''}|${settings.debugMode}|${JSON.stringify(settings.links)}`;
+  const token = `${ctx.slug}|${title}|${settings.steamCountry}|${settings.showSteam}|${settings.showSteamOwned}|${settings.showSteamWishlist}|${settings.showSteamTags}|${settings.showSteamCategories}|${settings.showMetacritic}|${settings.showOpenCritic}|${settings.showHltb}|${settings.showDeckProton}|${settings.showGameStatus}|${settings.showLinks}|${settings.showSteamDbIcon}|${settings.showSteamDbCover}|${settings.showSteamDbGallery}|${settings.showSteamDbDetails}|${settings.showSimilarGames}|${settings.showGameStats}|${settings.showSteamPlayers}|${settings.showSteamCharts}|${settings.showExport}|${settings.showGameId}|${getSteamOverride(ctx.slug) || ''}|${settings.debugMode}|${JSON.stringify(settings.links)}`;
   const marker = document.querySelector(`[${ENRICH_ATTR}]`);
   // Same page/settings: keep the in-flight (or finished) mount. Remounting while
   // skeletons remain caused OpenCritic/HLTB/etc. to flicker on every MutationObserver pass.
   if (marker?.getAttribute('data-blp-token') === token) {
     ensureUnifiedRatingWidget(token);
+    ensureSteamChartsMount(token);
     applyGameStatsVisibility();
     bindGameCoverViewer();
     syncExportButton(token);
@@ -1313,6 +1315,7 @@ export async function enrichGamePage() {
 
   Object.values(rows).forEach((row) => row?.setAttribute('data-blp-token', token));
   ensureUnifiedRatingWidget(token);
+  ensureSteamChartsMount(token);
   applyGameStatsVisibility();
   bindGameCoverViewer();
 
@@ -1524,6 +1527,9 @@ export async function enrichGamePage() {
   if (cachedPage.similar && state.steam?.appId != null) {
     applySimilarGames(cachedPage.similar, state.steam.appId, token, { final: true });
   }
+  if (state.steam?.appId != null && settings.showSteamCharts !== false) {
+    applySteamChartsData(state.steam.appId, state.steam, token);
+  }
 
   let dependentsStarted = false;
   let dependentsPromise = Promise.resolve();
@@ -1642,6 +1648,12 @@ export async function enrichGamePage() {
       );
     }
 
+    if (settings.showSteamCharts !== false && steam.appId) {
+      jobs.push(
+        applySteamChartsData(steam.appId, steam, token)
+      );
+    }
+
     dependentsPromise = Promise.all(jobs);
   };
 
@@ -1719,6 +1731,7 @@ export async function enrichGamePage() {
       if (needSteamDbMedia) removeSteamDbUi();
       syncExportButton(token);
       if (settings.showSimilarGames) removeSimilarGamesUi();
+      removeSteamChartsWidget();
     }
 
     if (settings.showGameStatus && !dependentsStarted) {

@@ -82,6 +82,8 @@ export default defineConfig({
           'html.duckduckgo.com',
           'www.protondb.com',
           'protondb.com',
+          'steamcharts.com',
+          'api.augmentedsteam.com',
           'cdn.jsdelivr.net',
           'latest.currency-api.pages.dev',
           'translate.googleapis.com',

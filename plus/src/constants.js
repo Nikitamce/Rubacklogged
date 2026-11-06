@@ -230,6 +230,7 @@ export const DEFAULT_SETTINGS = {
   showSimilarGames: true,
   showGameStats: true,
   showSteamPlayers: true,
+  showSteamCharts: true,
   showSteamDbDetails: true,
   showCardBadges: true,
   showCardBadgePrice: true,

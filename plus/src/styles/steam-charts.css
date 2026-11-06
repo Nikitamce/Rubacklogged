@@ -1,0 +1,238 @@
+.blp-charts-row {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.blp-charts-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.25rem !important;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--blp-accent-rgb, 61, 184, 154), 0.3) !important;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(var(--blp-accent-rgb, 61, 184, 154), 0.12), transparent 50%),
+    radial-gradient(80% 80% at 0% 100%, rgba(102, 192, 244, 0.08), transparent 45%),
+    var(--back-container, #1a1d24) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.blp-charts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.blp-charts-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.blp-charts-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.blp-charts-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--blp-text, #e8eaed);
+  margin: 0;
+}
+
+.blp-charts-tabs {
+  display: flex;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.blp-charts-tab {
+  background: transparent;
+  border: 0;
+  color: var(--blp-muted, #9aa0a6);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.blp-charts-tab:hover {
+  color: var(--blp-text, #e8eaed);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.blp-charts-tab.is-active {
+  color: #fff;
+  background: rgba(var(--blp-accent-rgb, 61, 184, 154), 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.blp-charts-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.blp-charts-metric-tile {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.blp-charts-metric-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--blp-muted, #9aa0a6);
+  margin-bottom: 0.2rem;
+}
+
+.blp-charts-metric-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--blp-text, #fff);
+  line-height: 1.2;
+}
+
+.blp-charts-metric-val--accent {
+  color: var(--blp-accent, #3db89a);
+}
+
+.blp-charts-metric-val--blue {
+  color: #66c0f4;
+}
+
+.blp-charts-graph-box {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: rgba(10, 14, 20, 0.55);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.blp-charts-graph-box svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.blp-charts-grid-line {
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.blp-charts-axis-text {
+  fill: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.blp-charts-line {
+  fill: none;
+  stroke: var(--blp-accent, #3db89a);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.blp-charts-line--price {
+  stroke: #66c0f4;
+}
+
+.blp-charts-area {
+  fill: url(#blp-chart-gradient-online);
+  opacity: 0.45;
+}
+
+.blp-charts-area--price {
+  fill: url(#blp-chart-gradient-price);
+  opacity: 0.35;
+}
+
+.blp-charts-cursor-line {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+  display: none;
+}
+
+.blp-charts-cursor-dot {
+  fill: var(--blp-accent, #3db89a);
+  stroke: #fff;
+  stroke-width: 2;
+  r: 4.5;
+  pointer-events: none;
+  display: none;
+}
+
+.blp-charts-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(18, 22, 28, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--blp-accent-rgb, 61, 184, 154), 0.4);
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -120%);
+  display: none;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.blp-charts-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+  color: var(--blp-muted, #9aa0a6);
+}
+
+.blp-charts-btn-steamdb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--blp-accent, #3db89a);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.blp-charts-btn-steamdb:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.blp-charts-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--blp-muted, #9aa0a6);
+  font-size: 0.85rem;
+}

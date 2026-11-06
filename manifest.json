@@ -25,6 +25,8 @@
     "*://*.gamestatus.info/*",
     "*://*.pcgamingwiki.com/*",
     "*://*.isthereanydeal.com/*",
+    "*://*.steamcharts.com/*",
+    "*://*.augmentedsteam.com/*",
     "*://*.gameslike.co/*",
     "*://*.gogdb.org/*",
     "*://*.jsdelivr.net/*",

@@ -3,6 +3,7 @@ import {
 } from '$';
 import './styles/main.css';
 import './styles/unified-rating.css';
+import './styles/steam-charts.css';
 import './styles/user-mini-profile.css';
 import './styles/game-mini-profile.css';
 import { bindCachePersistFlush, migrateCacheForScriptVersion } from './cache.js';

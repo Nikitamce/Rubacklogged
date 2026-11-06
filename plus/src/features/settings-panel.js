@@ -999,6 +999,7 @@ export function openSettings() {
           toggleHtml('showDeckProton', draft.showDeckProton, 'showDeckProtonHint'),
           toggleHtml('showGameStatus', draft.showGameStatus, 'showGameStatusHint'),
           toggleHtml('showSteamPlayers', draft.showSteamPlayers, 'showSteamPlayersHint'),
+          toggleHtml('showSteamCharts', draft.showSteamCharts, 'showSteamChartsHint'),
           toggleHtml('showSteamDbDetails', draft.showSteamDbDetails, 'showSteamDbDetailsHint')
         )
       )}

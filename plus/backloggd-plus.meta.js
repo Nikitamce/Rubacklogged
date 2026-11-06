@@ -50,6 +50,8 @@
 // @connect            html.duckduckgo.com
 // @connect            www.protondb.com
 // @connect            protondb.com
+// @connect            steamcharts.com
+// @connect            api.augmentedsteam.com
 // @connect            cdn.jsdelivr.net
 // @connect            latest.currency-api.pages.dev
 // @connect            translate.googleapis.com
