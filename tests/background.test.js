@@ -95,6 +95,29 @@ test('background omits cookies for anonymous translation requests', async () => 
   assert.equal(options.credentials, 'omit');
 });
 
+test('background can reject redirects for anti-bot endpoints', async () => {
+  let options;
+  const worker = loadBackground({
+    fetchImpl: async (_url, init) => {
+      options = init;
+      return {
+        status: 200, statusText: 'OK',
+        headers: { get: () => null, forEach: () => {} }, text: async () => '{}',
+      };
+    },
+  });
+  const result = await worker.send({
+    type: 'blp_xhr',
+    details: {
+      url: 'https://translate.googleapis.com/translate_a/single?client=gtx',
+      anonymous: true,
+      noRedirect: true,
+    },
+  });
+  assert.equal(result.success, true);
+  assert.equal(options.redirect, 'error');
+});
+
 test('background keeps API keys out of web storage messages', async () => {
   const worker = loadBackground();
   const result = await worker.send({ type: 'blp_secret_set', value: ' key with spaces ' });

@@ -5,7 +5,7 @@
 [![Greasy Fork](https://img.shields.io/badge/Greasy_Fork-587296-1a1d24?style=for-the-badge&labelColor=670000)](https://greasyfork.org/ru/scripts/587296-backloggd-plus)
 [![ScriptCat](https://img.shields.io/badge/ScriptCat-7077-1a1d24?style=for-the-badge&labelColor=f59e0b)](https://scriptcat.org/ru/script-show-page/7077)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://github.com/NemoKing1210/backloggd-plus/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.0-green?style=for-the-badge)](https://github.com/NemoKing1210/backloggd-plus/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.1-green?style=for-the-badge)](https://github.com/NemoKing1210/backloggd-plus/blob/main/CHANGELOG.md)
 
 A userscript that extends [Backloggd](https://www.backloggd.com) with extra game information, richer UI, and quality-of-life improvements — without leaving the site.
 
@@ -15,7 +15,7 @@ Also listed on [Greasy Fork](https://greasyfork.org/ru/scripts/587296-backloggd-
 
 > **Note:** Catalog pages on Greasy Fork / ScriptCat may lag behind this repository — I don’t always manage to push every release there right away. Sorry about that. For the newest build, prefer the [GitHub raw install URL](#quick-install) (or clone and `npm run build`). The script’s `@updateURL` / `@downloadURL` also point at GitHub `main`.
 
-> **Status:** active development (`0.9.0`). Backloggd enrichment, list badges, export, and Steam / SteamDB / Steam Community → Backloggd buttons.
+> **Status:** active development (`0.9.1`). Backloggd enrichment, list badges, export, and Steam / SteamDB / Steam Community → Backloggd buttons.
 
 ## Screenshots
 
@@ -91,7 +91,7 @@ Release steps for maintainers: see [DEVELOPMENT.md § Releases](https://github.c
 - SteamDB details row: franchise / OS from Steam store APIs; technologies & last record update from SteamDB when reachable
 - Export button under the Steam header and in the log editor (optional; Settings → Game; Notion CSV / Markdown / JSON)
 - Optional Backloggd game ID after the title (Settings → Game; click to copy)
-- Translate buttons on the game description and review cards (Settings → Translation; Google Translate)
+- Translate buttons on the game description and review cards (Settings → Translation; Google Translate with a MyMemory fallback when Google blocks the free endpoint)
 - Steam header / community icon on game pages; screenshot gallery after game stats
 - Similar games under screenshots (Steam More Like This) with tag match %; cards link to Backloggd and can show the same cover badges as list grids
 - Skeleton placeholders while Steam / GameStatus / score data loads

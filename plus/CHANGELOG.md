@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-11-15
+
+### Fixed
+
+- Google `sorry/429` redirects are no longer followed into a secondary CORS error from `google.com/sorry`.
+- Translation now falls back to the public MyMemory API when Google temporarily blocks the free endpoint.
+
 ## [0.9.0] - 2026-11-15
 
 ### Added

@@ -8,7 +8,7 @@ const ALLOWED_HOSTS = new Set([
   'www.isthereanydeal.com', 'steamcharts.com', 'www.steamcharts.com',
   'api.augmentedsteam.com', 'gameslike.co', 'www.gameslike.co', 'gogdb.org',
   'www.gogdb.org', 'cdn.jsdelivr.net', 'latest.currency-api.pages.dev',
-  'translate.googleapis.com', 'metacritic.com', 'www.metacritic.com',
+  'translate.googleapis.com', 'api.mymemory.translated.net', 'metacritic.com', 'www.metacritic.com',
   'html.duckduckgo.com', 'opencritic-api.p.rapidapi.com',
 ]);
 
@@ -46,7 +46,7 @@ async function handleRequest(details) {
       headers,
       body: method !== 'GET' && method !== 'HEAD' ? details.data : undefined,
       credentials: details.anonymous === true ? 'omit' : 'include',
-      redirect: 'follow',
+      redirect: details.noRedirect === true ? 'error' : 'follow',
       signal: controller.signal,
     });
     const length = Number(response.headers.get('content-length'));

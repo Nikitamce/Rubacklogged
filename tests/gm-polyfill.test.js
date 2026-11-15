@@ -44,12 +44,16 @@ test('polyfill stores only public settings in localStorage', () => {
   assert.equal(env.messages.at(-1).value, 'new-secret');
 });
 
-test('polyfill forwards request timeout and anonymity', () => {
+test('polyfill forwards request timeout, anonymity, and redirect policy', () => {
   const env = loadPolyfill();
   env.window.GM_xmlhttpRequest({
-    url: 'https://api.opencritic.com/api/game/search', timeout: 15000, anonymous: true,
+    url: 'https://api.opencritic.com/api/game/search',
+    timeout: 15000,
+    anonymous: true,
+    noRedirect: true,
   });
   const request = env.messages.at(-1);
   assert.equal(request.details.timeout, 15000);
   assert.equal(request.details.anonymous, true);
+  assert.equal(request.details.noRedirect, true);
 });

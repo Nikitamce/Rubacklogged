@@ -87,6 +87,7 @@ export default defineConfig({
           'cdn.jsdelivr.net',
           'latest.currency-api.pages.dev',
           'translate.googleapis.com',
+          'api.mymemory.translated.net',
           'www.metacritic.com',
           'metacritic.com',
         ],

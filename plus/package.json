@@ -1,6 +1,6 @@
 {
   "name": "backloggd-plus",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "type": "module",
   "description": "Userscript that extends Backloggd with extra game information, richer UI, and QoL features",

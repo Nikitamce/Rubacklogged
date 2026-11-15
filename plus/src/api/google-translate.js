@@ -8,6 +8,8 @@ import { gmRequest } from '../gm.js';
 import { inflight } from '../state.js';
 
 const GTX_URL = 'https://translate.googleapis.com/translate_a/single';
+const MYMEMORY_URL = 'https://api.mymemory.translated.net/get';
+const MYMEMORY_MAX_CHUNK = 430;
 
 function hashText(s) {
   const str = String(s);
@@ -44,6 +46,100 @@ function detectedLang(data) {
   return '';
 }
 
+async function fetchGoogleTranslation(plain, tl) {
+  const params = new URLSearchParams({
+    client: 'gtx',
+    sl: 'auto',
+    tl,
+    dt: 't',
+    q: plain,
+  });
+  const query =
+    `client=gtx&sl=auto&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(plain)}`;
+  const longBody = plain.length > 1800;
+  const data = await gmRequest({
+    url: longBody ? GTX_URL : `${GTX_URL}?${query}`,
+    method: longBody ? 'POST' : 'GET',
+    data: longBody ? params.toString() : undefined,
+    // Cookies can trigger Google consent/anti-abuse responses. Translation
+    // must be anonymous, unlike Steam Owned/Wishlist session requests.
+    anonymous: true,
+    // Google can answer a sorry/429 redirect; following it only produces a
+    // confusing CORS error from google.com/sorry.
+    noRedirect: true,
+    responseType: 'json',
+    headers: longBody
+      ? {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        }
+      : { Accept: 'application/json' },
+    timeout: 12000,
+  });
+  const translated = joinSegments(data).trim();
+  if (!translated) throw new Error('Empty Google translation');
+  return {
+    text: translated,
+    detectedSourceLang: detectedLang(data),
+  };
+}
+
+function splitForMyMemory(text, maxLength = MYMEMORY_MAX_CHUNK) {
+  const chunks = [];
+  let rest = String(text || '');
+  while (rest.length > maxLength) {
+    const window = rest.slice(0, maxLength);
+    let cut = -1;
+    for (const token of ['\n\n', '\n', '. ', '! ', '? ', ' ']) {
+      const index = window.lastIndexOf(token);
+      if (index > cut) cut = index;
+    }
+    if (cut < 80) cut = maxLength;
+    let chunk = rest.slice(0, cut);
+    if (cut < maxLength) {
+      const separator = rest.charAt(cut);
+      if (separator === '\n') chunk += separator;
+    }
+    chunks.push(chunk);
+    rest = rest.slice(chunk.length);
+  }
+  if (rest.trim()) chunks.push(rest);
+  return chunks.map((chunk) => chunk.trim()).filter(Boolean);
+}
+
+async function fetchMyMemoryTranslation(plain, tl) {
+  const chunks = splitForMyMemory(plain);
+  if (!chunks.length) throw new Error('Nothing to translate');
+  const translated = [];
+  let detected = '';
+
+  for (const chunk of chunks) {
+    const query =
+      `q=${encodeURIComponent(chunk)}&langpair=autodetect|${encodeURIComponent(tl)}`;
+    const data = await gmRequest({
+      url: `${MYMEMORY_URL}?${query}`,
+      anonymous: true,
+      noRedirect: true,
+      responseType: 'json',
+      headers: { Accept: 'application/json' },
+      timeout: 12000,
+    });
+    const status = Number(data?.responseStatus);
+    const text = String(data?.responseData?.translatedText || '').trim();
+    if (status !== 200 || data?.quotaFinished || !text || /INVALID_(SOURCE|TARGET)_LANGUAGE/i.test(text)) {
+      throw new Error(`MyMemory translation failed (${status || 'unknown'})`);
+    }
+    translated.push(text);
+    const detectedLanguage = data?.responseData?.detectedLanguage;
+    if (!detected && typeof detectedLanguage === 'string') detected = detectedLanguage;
+  }
+
+  return {
+    text: translated.join('\n'),
+    detectedSourceLang: detected.toLowerCase().slice(0, 2),
+  };
+}
+
 /**
  * @param {string} text
  * @param {string} targetLang short locale code (en, ru, zh, …)
@@ -67,39 +163,15 @@ export async function translateText(text, targetLang) {
   if (Date.now() - failedAt < FAILURE_BACKOFF_MS) return null;
 
   const task = (async () => {
-    const params = new URLSearchParams({
-      client: 'gtx',
-      sl: 'auto',
-      tl,
-      dt: 't',
-      q: plain,
-    });
-    const query =
-      `client=gtx&sl=auto&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(plain)}`;
-    const longBody = plain.length > 1800;
-    const data = await gmRequest({
-      url: longBody ? GTX_URL : `${GTX_URL}?${query}`,
-      method: longBody ? 'POST' : 'GET',
-      data: longBody ? params.toString() : undefined,
-      // Cookies can trigger Google consent/anti-abuse responses. Translation
-      // must be anonymous, unlike Steam Owned/Wishlist session requests.
-      anonymous: true,
-      responseType: 'json',
-      headers: longBody
-        ? { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
-        : { Accept: 'application/json' },
-      timeout: 12000,
-    });
-    const translated = joinSegments(data).trim();
-    if (!translated) {
-      recentFailures.set(failureKey, Date.now());
-      return null;
+    let payload;
+    try {
+      payload = await fetchGoogleTranslation(plain, tl);
+    } catch (_) {
+      // Google sometimes serves sorry/429 to the free endpoint. Use the
+      // public MyMemory API so the user still gets a translation.
+      payload = await fetchMyMemoryTranslation(plain, tl);
     }
     recentFailures.delete(failureKey);
-    const payload = {
-      text: translated,
-      detectedSourceLang: detectedLang(data),
-    };
     setCached(cacheKey, payload);
     return asCacheMiss(payload);
   })().catch(() => {

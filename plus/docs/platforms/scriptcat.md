@@ -15,7 +15,7 @@ Userscript that extends [Backloggd](https://www.backloggd.com) with extra game i
 ## Features
 
 - Home page block visibility (signed-in feed and guest landing sections; Settings → Home page)
-- Faster review translation: cached plain-text extraction, 3-card auto-translation queue, request backoff, and POST for long texts
+- Faster review translation: cached plain-text extraction, 3-card auto-translation queue, request backoff, POST for long texts, and MyMemory fallback when Google blocks the free endpoint
 
 ## Screenshots
 

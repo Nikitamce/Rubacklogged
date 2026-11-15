@@ -60,6 +60,9 @@ export function gmRequest(options) {
     if (typeof options.anonymous === 'boolean') {
       req.anonymous = options.anonymous;
     }
+    if (typeof options.noRedirect === 'boolean') {
+      req.noRedirect = options.noRedirect;
+    }
     if (options.data != null) {
       req.data =
         typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
