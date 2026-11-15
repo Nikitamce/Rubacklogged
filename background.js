@@ -5,7 +5,7 @@ const ALLOWED_HOSTS = new Set([
   'protondb.com', 'www.protondb.com', 'api.opencritic.com', 'opencritic.com',
   'www.opencritic.com', 'gamestatus.info', 'www.gamestatus.info',
   'pcgamingwiki.com', 'www.pcgamingwiki.com', 'isthereanydeal.com',
-  'www.isthereanydeal.com', 'steamcharts.com', 'www.steamcharts.com',
+  'www.isthereanydeal.com', 'api.isthereanydeal.com', 'steamcharts.com', 'www.steamcharts.com',
   'api.augmentedsteam.com', 'gameslike.co', 'www.gameslike.co', 'gogdb.org',
   'www.gogdb.org', 'cdn.jsdelivr.net', 'latest.currency-api.pages.dev',
   'translate.googleapis.com', 'api.mymemory.translated.net', 'metacritic.com', 'www.metacritic.com',

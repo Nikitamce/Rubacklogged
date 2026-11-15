@@ -165,7 +165,8 @@ export async function fetchItadPriceHistory(appId, country = 'US') {
   const id = Number(appId);
   if (!Number.isFinite(id) || id <= 0) return asCacheMiss([]);
 
-  const cacheKey = `itad:history:${id}:${country}`;
+  const normCountry = String(country || 'US').toUpperCase();
+  const cacheKey = `itad:history:v2:${id}:${normCountry}`;
   const cached = getCached(cacheKey);
   if (cached) return asCacheHit(cached);
 
@@ -191,10 +192,10 @@ export async function fetchItadPriceHistory(appId, country = 'US') {
     const gameId = lookupData?.game?.id;
     if (!gameId) return asCacheMiss([]);
 
-    // 2. Fetch price change history for the last 2 years (ITAD expects ISO without milliseconds: YYYY-MM-DDTHH:mm:ssZ)
-    const sinceDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+    // 2. Fetch Steam price change history for the last ~6 months (plus buffer) in user's region
+    const sinceDate = new Date(Date.now() - 210 * 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
     const historyRes = await gmRequest({
-      url: `https://api.isthereanydeal.com/games/history/v2?key=${ITAD_API_KEY}&id=${encodeURIComponent(gameId)}&since=${encodeURIComponent(sinceDate)}`,
+      url: `https://api.isthereanydeal.com/games/history/v2?key=${ITAD_API_KEY}&id=${encodeURIComponent(gameId)}&country=${encodeURIComponent(normCountry)}&shops=61&since=${encodeURIComponent(sinceDate)}`,
       method: 'GET',
       responseType: 'json',
       timeout: 12000,

@@ -460,19 +460,11 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   cachedItadPrice = itadRes?.lowest ? itadRes : (itadRes?.data || null);
   const itadRawHistory = Array.isArray(itadHistRes) ? itadHistRes : (itadHistRes?.data || []);
 
-  // Build price points
+  // Build 6-month price points
   const localHistory = getLocalPriceHistory(appId, settings.steamCountry);
   const pricePoints = [];
 
   const currentCurrency = cachedPriceOverview?.currency || '';
-  if (localHistory.length) {
-    for (const h of localHistory) {
-      if (!currentCurrency || !h.cur || h.cur === currentCurrency) {
-        pricePoints.push([h.t, h.p]);
-      }
-    }
-  }
-
   const currentFinal = cachedPriceOverview?.final != null ? (cachedPriceOverview.final / 100) : null;
   const currentInitial = cachedPriceOverview?.initial != null ? (cachedPriceOverview.initial / 100) : currentFinal;
   const isCurrentlyDiscounted = Boolean(
@@ -484,6 +476,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   );
 
   const now = Date.now();
+  const sixMonthsAgo = now - 180 * 24 * 3600 * 1000;
 
   let itadLowestConverted = null;
   let itadLowestTs = null;
@@ -512,11 +505,25 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   }
 
   const basePrice = currentInitial || currentFinal || 0;
+  let usedItadHistory = false;
 
-  // Process ITAD full historical price change events
+  const stepPriceFromEvent = (ev) => {
+    if (currentCurrency && ev.dealCur === currentCurrency && Number.isFinite(ev.dealPrice)) {
+      return ev.dealPrice;
+    }
+    if (ev.cut > 0) {
+      return Math.round(basePrice * (1 - ev.cut / 100));
+    }
+    if (ev.dealPrice && ev.regPrice && ev.regPrice > ev.dealPrice) {
+      return Math.round(basePrice * (ev.dealPrice / ev.regPrice));
+    }
+    return basePrice;
+  };
+
+  // Process ITAD historical price change events for the last 6 months
   if (itadRawHistory.length && basePrice > 0) {
     const steamEvents = itadRawHistory.filter((h) => h.shop?.id === 61 || h.shop?.name === 'Steam');
-    const effectiveEvents = steamEvents.length >= 3 ? steamEvents : itadRawHistory;
+    const effectiveEvents = steamEvents.length >= 1 ? steamEvents : itadRawHistory;
 
     const sortedEvents = effectiveEvents
       .filter((h) => h.timestamp && h.deal)
@@ -525,35 +532,46 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
         cut: Number(h.deal.cut) || 0,
         dealPrice: Number(h.deal.price?.amount),
         regPrice: Number(h.deal.regular?.amount),
+        dealCur: h.deal.price?.currency || '',
       }))
-      .filter((h) => !isNaN(h.t) && h.t > now - 730 * 24 * 3600 * 1000)
+      .filter((h) => !isNaN(h.t) && h.t <= now)
       .sort((a, b) => a.t - b.t);
 
     if (sortedEvents.length) {
-      const firstT = sortedEvents[0].t;
-      pricePoints.push([firstT - 24 * 3600 * 1000, basePrice]);
-
+      usedItadHistory = true;
+      let preEvent = null;
+      const inWindow = [];
       for (const ev of sortedEvents) {
-        let stepPrice = basePrice;
-        if (ev.cut > 0) {
-          stepPrice = Math.round(basePrice * (1 - ev.cut / 100));
-        } else if (ev.dealPrice && ev.regPrice && ev.regPrice > ev.dealPrice) {
-          stepPrice = Math.round(basePrice * (ev.dealPrice / ev.regPrice));
+        if (ev.t <= sixMonthsAgo) {
+          preEvent = ev;
+        } else {
+          inWindow.push(ev);
         }
-        pricePoints.push([ev.t, stepPrice]);
+      }
+
+      const startPrice = preEvent ? stepPriceFromEvent(preEvent) : basePrice;
+      pricePoints.push([sixMonthsAgo, startPrice]);
+
+      for (const ev of inWindow) {
+        pricePoints.push([ev.t, stepPriceFromEvent(ev)]);
       }
     }
   }
 
-  // Fallback if no events
-  if (pricePoints.length === 0 && basePrice > 0) {
-    const oldestTs = itadLowestTs && itadLowestTs < now - 180 * 24 * 3600 * 1000
-      ? itadLowestTs - 14 * 24 * 3600 * 1000
-      : now - 180 * 24 * 3600 * 1000;
+  // Merge local visit snapshots within the 6-month window
+  if (localHistory.length) {
+    for (const h of localHistory) {
+      if (h.t >= sixMonthsAgo && (!currentCurrency || !h.cur || h.cur === currentCurrency)) {
+        pricePoints.push([h.t, h.p]);
+      }
+    }
+  }
 
-    pricePoints.push([oldestTs, basePrice]);
+  // Fallback for the 6-month window if ITAD history is unavailable
+  if (!usedItadHistory && basePrice > 0) {
+    pricePoints.push([sixMonthsAgo, basePrice]);
 
-    if (itadLowestConverted != null && itadLowestTs && itadLowestTs < now) {
+    if (itadLowestConverted != null && itadLowestTs && itadLowestTs >= sixMonthsAgo && itadLowestTs < now) {
       const saleStart = itadLowestTs;
       const saleEnd = saleStart + 7 * 24 * 3600 * 1000;
 
@@ -590,8 +608,11 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     }
   }
 
-  if (uniquePoints.length === 1) {
-    uniquePoints.unshift([uniquePoints[0][0] - 30 * 24 * 3600 * 1000, uniquePoints[0][1]]);
+  if (uniquePoints.length >= 1) {
+    const spanMs = uniquePoints[uniquePoints.length - 1][0] - uniquePoints[0][0];
+    if (spanMs < 24 * 3600 * 1000) {
+      uniquePoints.unshift([sixMonthsAgo, uniquePoints[0][1]]);
+    }
   }
 
   cachedPricePoints = uniquePoints;
