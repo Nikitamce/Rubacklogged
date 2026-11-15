@@ -68,7 +68,8 @@
         "lib/engine.js",
         "locales/ru.js",
         "content.js",
-        "lib/plus-bundle.js"
+        "lib/plus-bundle.js",
+        "lib/gamequill-content.js"
       ],
       "css": ["content.css"],
       "run_at": "document_start"
@@ -81,6 +82,19 @@
       ],
       "js": ["lib/systemjs-loader.js", "lib/gm-polyfill.js", "lib/plus-bundle.js"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "gamequill/*",
+        "fonts/*",
+        "ratings/*.png"
+      ],
+      "matches": [
+        "https://backloggd.com/*",
+        "https://www.backloggd.com/*"
+      ]
     }
   ]
 }

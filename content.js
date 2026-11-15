@@ -119,6 +119,10 @@
     '#blp-export-collection',
     '#blp-network-diagnostics',
     '.blp-diagnostics',
+    'gq-composer',
+    '[data-gq-view]',
+    '[data-gq-preview]',
+    '[data-gq-bar]',
   ].join(',');
 
   // Expand/collapse controls are UI even when they sit inside a protected

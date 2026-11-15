@@ -4,9 +4,10 @@
   "private": true,
   "description": "Safe Russian interface translation for Backloggd.com (Manifest V3 extension).",
   "scripts": {
-    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js && node tests/locale-detection.test.js && node --test tests/background.test.js tests/gm-polyfill.test.js tests/manifest.test.js",
+    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js && node tests/locale-detection.test.js && node --test tests/background.test.js tests/gm-polyfill.test.js tests/manifest.test.js tests/gamequill.test.mjs",
     "test:all": "npm test && npm --prefix plus test",
-    "build": "npm --prefix plus run build",
+    "build:gamequill": "node scripts/build-gamequill.mjs",
+    "build": "npm --prefix plus run build && npm run build:gamequill",
     "ci": "npm run test:all && npm run build && npm --prefix plus run verify:artifacts"
   },
   "engines": {

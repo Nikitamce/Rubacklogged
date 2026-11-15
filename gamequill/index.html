@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru" data-gq-theme="panax-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GameQuill — редактор игровых обзоров</title>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="../src/shared/gq-cards.css">
+</head>
+<body>
+<button class="sb-toggle" id="sbToggle">☰</button>
+<div class="app">
+  <!-- ============ САЙДБАР ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="logo">
+        <div class="logo-mark">🎮</div>
+        <div>
+          <div class="logo-t">GameQuill</div>
+          <div class="logo-s">редактор обзоров</div>
+        </div>
+      </div>
+      <div class="sb-search">
+        <span class="ic">🔎</span>
+        <input id="sbSearch" placeholder="Поиск по моим обзорам…">
+      </div>
+    </div>
+    <button class="btn-new" id="btnNew">＋ Новый обзор</button>
+    <div class="sb-list" id="sbList"></div>
+    <div class="sb-foot">
+      <button class="mini" id="btnExportAll">⬇ Экспорт</button>
+      <button class="mini" id="btnImport">⬆ Импорт</button>
+      <button class="mini" id="btnSettings">⚙ Настройки</button>
+    </div>
+  </aside>
+
+  <!-- ============ ОСНОВНАЯ ЧАСТЬ ============ -->
+  <div class="main">
+    <header class="ribbon">
+      <div class="rb-top">
+        <button class="rb-tab on" data-pane="file">🗂 Файл</button>
+        <button class="rb-tab" data-pane="home">🅰 Главная</button>
+        <button class="rb-tab" data-pane="insert">➕ Вставка</button>
+        <button class="rb-tab" data-pane="review">⭐ Обзор</button>
+        <div class="rb-right">
+          <div class="theme-sw" id="themeSw">
+            <button type="button" class="theme-sw-btn" id="themeSwBtn" title="Сменить тему редактора" aria-expanded="false">
+              <span class="theme-sw-dot" id="themeSwDot"></span>
+              <span class="theme-sw-lbl" id="themeSwLbl">Тема</span>
+              <span style="font-size:10px;opacity:.65">▾</span>
+            </button>
+            <div class="theme-sw-menu" id="themeSwMenu"></div>
+          </div>
+          <button class="gq-send" id="gqSend" title="Перенести обзор в поле отзыва Backloggd">⇪ Перенести в обзор</button>
+          <button class="gq-close" id="gqClose" title="Свернуть редактор (черновик сохранится)">✕</button>
+          <span id="saveState"><span class="savedot" id="saveDot"></span> <span id="saveTxt">сохранено</span></span>
+          <span id="wordCount">0 слов</span>
+        </div>
+      </div>
+      <div class="rb-body">
+        <!-- ФАЙЛ -->
+        <div class="rb-pane on" data-pane="file">
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="new"><span>📄</span><em>Создать</em></button>
+            <button class="rb-btn big" data-a="dup"><span>⧉</span><em>Дубль</em></button>
+            <button class="rb-btn big" data-a="save"><span>💾</span><em>Сохранить</em></button>
+          </div><div class="rg-l">Обзор</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="exp-md"><span>📝</span><em>Markdown</em></button>
+            <button class="rb-btn big" data-a="exp-md-all"><span>📚</span><em>MD: все</em></button>
+            <button class="rb-btn big" data-a="exp-gq"><span>💠</span><em>Формат GQ</em></button>
+            <button class="rb-btn big" data-a="exp-gq-all"><span>🗃</span><em>GQ: все</em></button>
+            <button class="rb-btn big" data-a="copy-md"><span>📋</span><em>Копия MD</em></button>
+            <button class="rb-btn big" data-a="import"><span>⬆️</span><em>Импорт</em></button>
+          </div><div class="rg-l">Экспорт / импорт</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="settings"><span>⚙️</span><em>Настройки</em></button>
+            <button class="rb-btn big" data-a="demo" id="btnDemo" title="Вставить готовый тестовый обзор «Неоновый реквием по человечеству»"><span>✨</span><em>Вставить тестовый обзор</em></button>
+            <button class="rb-btn big" data-a="del"><span>🗑</span><em>Удалить</em></button>
+          </div><div class="rg-l">Сервис</div></div>
+        </div>
+        <!-- ГЛАВНАЯ -->
+        <div class="rb-pane" data-pane="home">
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-cmd="undo"><span>↶</span><em>Отменить</em></button>
+            <button class="rb-btn big" data-cmd="redo"><span>↷</span><em>Вернуть</em></button>
+          </div><div class="rg-l">История</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn" data-cmd="bold" title="Жирный Ctrl+B"><b>Ж</b></button>
+            <button class="rb-btn" data-cmd="italic" title="Курсив Ctrl+I"><i>К</i></button>
+            <button class="rb-btn" data-cmd="underline" title="Подчёркнутый Ctrl+U"><u>Ч</u></button>
+            <button class="rb-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
+            <button class="rb-btn" data-a="mark" title="Выделение маркером">🖍</button>
+            <button class="rb-btn" data-a="code" title="Код">&lt;/&gt;</button>
+            <div class="sep"></div>
+            <button class="rb-btn" data-a="size-down" title="Меньше">A−</button>
+            <button class="rb-btn" data-a="size-up" title="Больше">A＋</button>
+            <div class="sep"></div>
+            <button class="sw" style="background:#e9ecf6" data-a="color" data-v="#e9ecf6" title="Цвет текста"></button>
+            <button class="sw" style="background:#ff5f6d" data-a="color" data-v="#ff5f6d" title="Красный"></button>
+            <button class="sw" style="background:#ffc84a" data-a="color" data-v="#ffc84a" title="Жёлтый"></button>
+            <button class="sw" style="background:#3ddc97" data-a="color" data-v="#3ddc97" title="Зелёный"></button>
+            <button class="sw" style="background:#22d3ee" data-a="color" data-v="#22d3ee" title="Голубой"></button>
+            <button class="sw" style="background:#b78bff" data-a="color" data-v="#b78bff" title="Фиолетовый"></button>
+            <div class="sep"></div>
+            <button class="rb-btn" data-cmd="removeFormat" title="Очистить форматирование">⌫</button>
+          </div><div class="rg-l">Шрифт</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn" data-a="block" data-v="text" title="Обычный текст">¶</button>
+            <button class="rb-btn" data-a="block" data-v="h2" title="Заголовок 2">H2</button>
+            <button class="rb-btn" data-a="block" data-v="h3" title="Заголовок 3">H3</button>
+            <button class="rb-btn" data-a="block" data-v="quote" title="Цитата">❝</button>
+          </div><div class="rg-l">Абзац</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn" data-cmd="insertUnorderedList" title="Маркированный список">•≡</button>
+            <button class="rb-btn" data-cmd="insertOrderedList" title="Нумерованный список">1≡</button>
+            <div class="sep"></div>
+            <button class="rb-btn" data-cmd="justifyLeft" title="По левому">⬅</button>
+            <button class="rb-btn" data-cmd="justifyCenter" title="По центру">↔</button>
+            <button class="rb-btn" data-cmd="justifyRight" title="По правому">➡</button>
+            <div class="sep"></div>
+            <button class="rb-btn" data-a="link" title="Ссылка Ctrl+K">🔗</button>
+            <button class="rb-btn" data-a="gamelink" title="Ссылка на игру">🎮</button>
+          </div><div class="rg-l">Списки и ссылки</div></div>
+        </div>
+        <!-- ВСТАВКА -->
+        <div class="rb-pane" data-pane="insert">
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="add-block" data-v="h2"><span>H2</span><em>Заголовок</em></button>
+            <button class="rb-btn big" data-a="add-block" data-v="text"><span>¶</span><em>Текст</em></button>
+            <button class="rb-btn big" data-a="add-block" data-v="quote"><span>❝</span><em>Цитата</em></button>
+            <button class="rb-btn big" data-a="add-block" data-v="spoiler"><span>👁</span><em>Спойлер</em></button>
+            <button class="rb-btn big" data-a="add-block" data-v="divider"><span>—</span><em>Линия</em></button>
+          </div><div class="rg-l">Текстовые блоки</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="insert" data-v="game"><span>🎮</span><em>Карточка игры</em></button>
+            <button class="rb-btn big" data-a="insert" data-v="youtube"><span>▶️</span><em>Видео</em></button>
+            <button class="rb-btn big" data-a="insert" data-v="steam"><span>♨️</span><em>Steam</em></button>
+            <button class="rb-btn big" data-a="insert" data-v="workshop"><span>🛠️</span><em>Мастерская</em></button>
+            <button class="rb-btn big" data-a="insert" data-v="image"><span>🖼</span><em>Изображение</em></button>
+          </div><div class="rg-l">Виджеты и фото</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="gamelink"><span>🔗</span><em>Ссылка на игру</em></button>
+            <button class="rb-btn big" data-a="link"><span>🌐</span><em>Обычная ссылка</em></button>
+            <button class="rb-btn big" data-a="insert" data-v="url"><span>🧩</span><em>По URL</em></button>
+          </div><div class="rg-l">Ссылки</div></div>
+        </div>
+        <!-- ОБЗОР -->
+        <div class="rb-pane" data-pane="review">
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="focus-score"><span>⭐</span><em>К оценке</em></button>
+            <button class="rb-btn big" data-a="focus-aspects"><span>📊</span><em>Аспекты</em></button>
+            <button class="rb-btn big" data-a="focus-pc"><span>±</span><em>Плюсы/минусы</em></button>
+          </div><div class="rg-l">Навигация</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="verdict" data-v="yes"><span>👍</span><em>Рекомендую</em></button>
+            <button class="rb-btn big" data-a="verdict" data-v="neutral"><span>🤔</span><em>Нейтрально</em></button>
+            <button class="rb-btn big" data-a="verdict" data-v="no"><span>👎</span><em>Не рекомендую</em></button>
+          </div><div class="rg-l">Вердикт</div></div>
+          <div class="rg"><div class="rg-b">
+            <button class="rb-btn big" data-a="add-aspect"><span>＋</span><em>Аспект</em></button>
+            <button class="rb-btn big" data-a="add-pro"><span>✅</span><em>Плюс</em></button>
+            <button class="rb-btn big" data-a="add-con"><span>❌</span><em>Минус</em></button>
+          </div><div class="rg-l">Добавить</div></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="canvas" id="canvas">
+      <div class="doc" id="doc" style="display:none">
+        <div class="doc-head">
+          <input class="doc-title" id="docTitle" placeholder="Заголовок обзора (необязательно)">
+          <input class="doc-game" id="docGame" placeholder="Название игры — например, Neon Requiem">
+          <div class="doc-meta">
+            <span class="chip" id="mAuthor">✍️ Автор</span>
+            <span class="chip" id="mDate">📅 —</span>
+            <span class="chip" id="mWords">🔤 0 слов</span>
+          </div>
+          <div class="scorecard">
+            <div class="sc-left">
+              <div class="stars-row" id="starsRow"></div>
+              <div class="sc-num"><b id="scNum">—</b><i>из 10</i></div>
+              <div class="sc-cap" id="scCap"></div>
+            </div>
+            <div class="verdict" id="verdictBox">
+              <label>Рекомендую игру?</label>
+              <button class="vb yes" data-v="yes"><span class="e">👍</span> Рекомендую</button>
+              <button class="vb mid" data-v="neutral"><span class="e">🤔</span> Нейтрально</button>
+              <button class="vb no" data-v="no"><span class="e">👎</span> Не рекомендую</button>
+            </div>
+          </div>
+          <div class="aspects" id="aspectsSec">
+            <div class="sec-h">
+              <h3>📊 Оценки аспектов</h3>
+              <span class="hint">можно оценить не всё — пропущенные аспекты получат подпись</span>
+            </div>
+            <div id="aspList"></div>
+            <div class="asp-add">
+              <input id="aspInput" placeholder="Свой аспект: Звук, Реиграбельность, Сюжетные повороты…">
+              <button class="ghost" id="aspAdd">＋ Добавить</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="blocks" id="blocksList"></div>
+
+        <div class="addbar">
+          <button class="ghost" data-a="add-block" data-v="text">¶ Текстовый блок</button>
+          <button class="ghost" data-a="add-block" data-v="h2">H2 Заголовок</button>
+          <button class="ghost" data-a="add-block" data-v="quote">❝ Цитата</button>
+          <button class="ghost" data-a="add-block" data-v="divider">— Разделитель</button>
+          <button class="ghost" data-a="insert" data-v="game">🎮 Виджет игры</button>
+          <button class="ghost" data-a="insert" data-v="youtube">▶️ Видео</button>
+          <button class="ghost" data-a="insert" data-v="steam">♨️ Steam</button>
+          <button class="ghost" data-a="insert" data-v="workshop">🛠️ Мастерская</button>
+        </div>
+
+        <div class="proscons" id="pcSec">
+          <div class="pc p">
+            <h4><span>✅</span> Плюсы</h4>
+            <div id="prosList"></div>
+            <button class="pc-add" data-a="add-pro">＋ Добавить плюс</button>
+          </div>
+          <div class="pc c">
+            <h4><span>❌</span> Минусы</h4>
+            <div id="consList"></div>
+            <button class="pc-add" data-a="add-con">＋ Добавить минус</button>
+          </div>
+        </div>
+        <div class="doc-foot">
+          <span id="footL">GameQuill · обзор создан</span>
+          <span id="footR"></span>
+        </div>
+      </div>
+
+      <div class="welcome" id="welcome" style="display:none">
+        <div id="welcomeArt"></div>
+        <h2>Добро пожаловать в GameQuill</h2>
+        <p>Редактор для написания обзоров видеоигр: блочный текст, оценка по 10 звёздам, плюсы и минусы, виджеты игр из Steam, YouTube и Мастерской, экспорт в Markdown и в родной формат редактора.</p>
+        <button class="pri" id="wNew">📄 Создать первый обзор</button>
+        <button class="ghost" id="wDemo" style="margin-left:8px">✨ Вставить тестовый обзор</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- плавающая панель выделения -->
+<div class="flt" id="flt"></div>
+<!-- всплывающие меню -->
+<div class="pop" id="blockMenu"></div>
+<div class="pop" id="expMenu"></div>
+<input type="file" id="fileIn" accept=".json,.gq,application/json" style="display:none">
+
+<!-- модалка вставки -->
+<div class="mv" id="insModal">
+  <div class="mb wide">
+    <div class="mh">
+      <div><h3 id="insTitle">Вставка виджета</h3><div class="sub" id="insSub">Найдите игру — виджет соберётся автоматически</div></div>
+      <button class="mx" data-close>✕</button>
+    </div>
+    <div class="tabs" id="insTabs"></div>
+    <div class="mbody" id="insBody"></div>
+  </div>
+</div>
+
+<!-- модалка настроек -->
+<div class="mv" id="setModal">
+  <div class="mb wide">
+    <div class="mh"><div><h3>⚙️ Настройки</h3><div class="sub">Автор, интеграции игровых сервисов, данные</div></div><button class="mx" data-close>✕</button></div>
+    <div class="tabs">
+      <button class="tab on" data-st="gen">Общие</button>
+      <button class="tab" data-st="int">Интеграции</button>
+      <button class="tab" data-st="data">Данные</button>
+    </div>
+    <div class="mbody" id="setBody"></div>
+  </div>
+</div>
+
+<!-- модалка ссылки -->
+<div class="mv" id="linkModal">
+  <div class="mb" style="max-width:460px">
+    <div class="mh"><div><h3>🔗 Ссылка</h3><div class="sub">Обернуть выделенный текст</div></div><button class="mx" data-close>✕</button></div>
+    <div class="mbody">
+      <div class="field"><label>URL</label><input class="inp" id="linkUrl" placeholder="https://…"></div>
+      <div class="field"><label>Текст</label><input class="inp" id="linkTxt" placeholder="Текст ссылки"></div>
+      <div class="field"><label>Стиль</label>
+        <select class="inp" id="linkStyle">
+          <option value="lnk">Обычная ссылка</option>
+          <option value="chip">🎮 Чип-ссылка на игру</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfoot"><button class="ghost" data-close>Отмена</button><button class="pri" id="linkOk">Вставить</button></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="bridge.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

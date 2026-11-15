@@ -11,6 +11,7 @@
     stats: document.getElementById('stats'),
     translated: document.getElementById('translated-count'),
     rescan: document.getElementById('rescan'),
+    toggleGameQuill: document.getElementById('toggle-gamequill'),
     version: document.querySelector('.version'),
   };
 
@@ -193,6 +194,14 @@
     }
 
     render();
+    if (elements.toggleGameQuill && typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get({ showGameQuill: true }, (items) => {
+        elements.toggleGameQuill.checked = !items || items.showGameQuill !== false;
+      });
+      elements.toggleGameQuill.addEventListener('change', () => {
+        chrome.storage.local.set({ showGameQuill: elements.toggleGameQuill.checked });
+      });
+    }
     if (isBackloggdPage() && tabId !== null) await refreshStatus();
     render();
   }
