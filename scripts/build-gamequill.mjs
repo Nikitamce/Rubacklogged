@@ -59,12 +59,12 @@ async function buildTarget(entryRel, outRel) {
         enforce: 'pre',
         resolveId(source, importer) {
           if (source.endsWith('.css') && importer) {
-            return '\0raw-css:' + path.resolve(path.dirname(importer), source);
+            return '\0raw-css:' + path.resolve(path.dirname(importer), source) + '.js';
           }
         },
         load(id) {
           if (id.startsWith('\0raw-css:')) {
-            const filePath = id.slice('\0raw-css:'.length);
+            const filePath = id.slice('\0raw-css:'.length, -3);
             return `export default ${JSON.stringify(fs.readFileSync(filePath, 'utf8'))};`;
           }
         },
