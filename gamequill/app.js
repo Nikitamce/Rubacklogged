@@ -1128,7 +1128,7 @@ function drawDetail(){
       else if(k==='steam')html=widgetHTML({type:'steam',data:steamData(g)});
       else if(k==='youtube')html=widgetHTML({type:'youtube',data:ytData(g)});
       else if(k==='workshop'&&g.ws&&g.ws[0])html=widgetHTML({type:'workshop',data:g.ws[0]});
-      else if(k==='chip')html=`<div style="padding:20px 18px;font-size:15px;line-height:1.6;color:#e6e8f0">В тексте статьи: <a class="chip" href="#" onclick="return false">🎮 ${esc(g.title)}</a></div>`;
+      else if(k==='chip')html=`<div style="padding:20px 18px;font-size:15px;line-height:1.6;color:#e6e8f0">В тексте статьи: <span class="chip">🎮 ${esc(g.title)}</span></div>`;
       if(!html){insPrev.classList.remove('show');return}
       insPrevIn.innerHTML=html;
       insPrev.style.top=Math.max(0,btn.offsetTop)+'px';
