@@ -111,6 +111,13 @@ html.backloggd-i18n-active #center-content #summary-expand-btn:not(.collapsed)::
   content: "Свернуть" !important;
 }
 
+html.backloggd-i18n-active #logging-sidebar-section .btn {
+  padding-left: 8px;
+  padding-right: 10px;
+  text-align: center;
+  justify-content: center;
+}
+
 html.backloggd-i18n-active .custom-file-input ~ .custom-file-label::after {
   content: "Обзор" !important;
 }
