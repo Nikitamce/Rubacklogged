@@ -5,7 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(path.join(ROOT, 'plus', 'package.json'));
-const esbuild = require('esbuild');
+
+let esbuild = null;
+try {
+  esbuild = require('esbuild');
+} catch {
+  esbuild = null;
+}
 
 // Resolve and read workspace modules via Node fs so esbuild never walks parent
 // directories above the repo root (which fails on restricted Windows profiles).
@@ -24,22 +30,51 @@ const localFsPlugin = {
   },
 };
 
-function buildTarget(entryRel, outRel) {
+async function buildTarget(entryRel, outRel) {
   const entryAbs = path.join(ROOT, entryRel);
   const outAbs = path.join(ROOT, outRel);
-  return esbuild.build({
-    stdin: {
-      contents: fs.readFileSync(entryAbs, 'utf8'),
-      resolveDir: path.dirname(entryAbs),
-      loader: 'js',
-      sourcefile: entryAbs,
-    },
-    bundle: true,
-    format: 'iife',
-    target: 'chrome102',
-    outfile: outAbs,
-    plugins: [localFsPlugin],
+  if (esbuild) {
+    return esbuild.build({
+      stdin: {
+        contents: fs.readFileSync(entryAbs, 'utf8'),
+        resolveDir: path.dirname(entryAbs),
+        loader: 'js',
+        sourcefile: entryAbs,
+      },
+      bundle: true,
+      format: 'iife',
+      target: 'chrome102',
+      outfile: outAbs,
+      plugins: [localFsPlugin],
+      logLevel: 'info',
+    });
+  }
+  const { build: viteBuild } = require('vite');
+  return viteBuild({
+    configFile: false,
     logLevel: 'info',
+    plugins: [
+      {
+        name: 'raw-css-text',
+        enforce: 'pre',
+        load(id) {
+          if (id.endsWith('.css')) {
+            return `export default ${JSON.stringify(fs.readFileSync(id, 'utf8'))};`;
+          }
+        },
+      },
+    ],
+    build: {
+      outDir: path.dirname(outAbs),
+      emptyOutDir: false,
+      minify: false,
+      lib: {
+        entry: entryAbs,
+        formats: ['iife'],
+        name: 'GameQuillBundle',
+        fileName: () => path.basename(outRel),
+      },
+    },
   });
 }
 
