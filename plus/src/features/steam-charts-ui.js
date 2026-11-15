@@ -26,6 +26,17 @@ let isPriceExpanded = false;
 
 export function removeSteamChartsWidget() {
   document.querySelectorAll('.blp-chart-dropdown-row').forEach((el) => el.remove());
+  document.querySelectorAll('.blp-players-row-controls, .blp-price-row-controls').forEach((el) => el.remove());
+  cachedAppId = null;
+  cachedOnlinePoints = [];
+  cachedOnlinePeak = 0;
+  cachedPricePoints = [];
+  cachedCurrentPlayers = null;
+  cachedPriceOverview = null;
+  cachedItadPrice = null;
+  cachedConvertedLowest = null;
+  isOnlineExpanded = false;
+  isPriceExpanded = false;
 }
 
 export function formatNumber(num) {
@@ -254,11 +265,23 @@ function ensureDropdownRow(anchorEl, kind) {
  * Update the Players row (ИГРОКИ): add all-time peak & "Показать график" button.
  */
 export function updatePlayersRowUi() {
+  if (settings.showSteamCharts === false || cachedAppId == null) return;
   const row = document.querySelector('[data-blp-enrich="players"]');
   if (!row) return;
 
   const valuesSlot = row.querySelector('[data-blp-values]');
   if (!valuesSlot) return;
+
+  const hasChartData = cachedOnlinePoints.length >= 2 || cachedOnlinePeak > 0;
+  if (row.hidden) {
+    if (!hasChartData) return;
+    row.hidden = false;
+    if (valuesSlot.querySelector('.blp-skeleton')) {
+      valuesSlot.innerHTML = '';
+    }
+  } else if (valuesSlot.querySelector('.blp-skeleton') && !hasChartData) {
+    return;
+  }
 
   let wrap = valuesSlot.querySelector('.blp-players-row-controls');
   if (!wrap) {
@@ -315,14 +338,14 @@ export function updatePlayersRowUi() {
  * Update the Steam Price row (STEAM): add All-time low pill & "График цен" button.
  */
 export function updateSteamPriceRowUi() {
+  if (settings.showSteamCharts === false || cachedAppId == null) return;
   const row = document.querySelector('[data-blp-enrich="steam"]');
-  if (!row) return;
+  if (!row || row.hidden) return;
 
   const valuesSlot = row.querySelector('[data-blp-values]');
-  if (!valuesSlot) return;
+  if (!valuesSlot || valuesSlot.querySelector('.blp-skeleton')) return;
 
-  const firstLine = valuesSlot.querySelector('.blp-steam-line');
-  if (!firstLine) return;
+  const firstLine = valuesSlot.querySelector('.blp-steam-line') || valuesSlot;
 
   let wrap = firstLine.querySelector('.blp-price-row-controls');
   if (!wrap) {
@@ -393,6 +416,17 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     return;
   }
 
+  if (cachedAppId !== appId) {
+    document.querySelectorAll('.blp-chart-dropdown-row').forEach((el) => el.remove());
+    cachedOnlinePoints = [];
+    cachedOnlinePeak = 0;
+    cachedPricePoints = [];
+    cachedItadPrice = null;
+    cachedConvertedLowest = null;
+    isOnlineExpanded = false;
+    isPriceExpanded = false;
+  }
+
   cachedAppId = appId;
   cachedPriceOverview = steamData?.price || null;
   cachedCurrentPlayers = livePlayers != null ? livePlayers : (steamData?.players != null ? steamData.players : null);
@@ -412,6 +446,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
   const itadHistoryPromise = fetchItadPriceHistory(appId, settings.steamCountry);
 
   const [onlineRes, itadRes, itadHistRes] = await Promise.all([onlinePromise, itadPromise, itadHistoryPromise]);
+  if (cachedAppId !== appId) return;
 
   const onlineData = onlineRes?.points ? onlineRes : { points: Array.isArray(onlineRes) ? onlineRes : (onlineRes?.data || []), allTimePeak: 0 };
   cachedOnlinePoints = onlineData.points || [];
@@ -462,6 +497,7 @@ export async function applySteamChartsData(appId, steamData, token = '', livePla
     } else {
       try {
         const rate = await getFxRate(itadCur, currentCurrency);
+        if (cachedAppId !== appId) return;
         if (rate && Number.isFinite(rate)) {
           itadLowestConverted = Math.round(itadAmt * rate);
           cachedConvertedLowest = `~ ${formatMoneyMajor(itadLowestConverted, currentCurrency, { maxFrac: 0 })}`;

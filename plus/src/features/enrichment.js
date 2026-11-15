@@ -51,7 +51,12 @@ import {
 import { syncExportButton, removeExportUi } from './export-game.js';
 import { readBackloggdGameId, removeGameIdUi, syncGameIdUi } from './game-id.js';
 import { ensureUnifiedRatingWidget, updateUnifiedRatingWidget } from './unified-rating.js';
-import { applySteamChartsData, removeSteamChartsWidget } from './steam-charts-ui.js';
+import {
+  applySteamChartsData,
+  removeSteamChartsWidget,
+  updatePlayersRowUi,
+  updateSteamPriceRowUi,
+} from './steam-charts-ui.js';
 import { getIgdbUrl, getPageContext, getGameTitle } from './page.js';
 import { cacheSourceLabel, paintDebugCacheMark } from './debug-cache.js';
 
@@ -1423,6 +1428,12 @@ export async function enrichGamePage() {
     }
   };
 
+  const rehydrateChartsUi = () => {
+    if (!stillHere() || settings.showSteamCharts === false || !state.steam?.found || state.steam.appId == null) return;
+    updateSteamPriceRowUi();
+    updatePlayersRowUi();
+  };
+
   const paintSteamBlock = () => {
     if (!stillHere() || state.steam == null) return;
     syncLibrary();
@@ -1448,6 +1459,7 @@ export async function enrichGamePage() {
     );
     paintLinks(state.steam);
     updateUnifiedRatingWidget(state);
+    rehydrateChartsUi();
   };
 
   const paintSteamDbDetails = () => {
@@ -1464,6 +1476,7 @@ export async function enrichGamePage() {
         skipDebug: true,
       }
     );
+    rehydrateChartsUi();
   };
 
   const paintOpenCritic = () => {
@@ -1504,6 +1517,7 @@ export async function enrichGamePage() {
       { players: rows.players },
       { steamDb: state.steamDb, error: state.error, skipDebug: true }
     );
+    rehydrateChartsUi();
   };
 
   const paintGameStatus = () => {
@@ -1541,6 +1555,7 @@ export async function enrichGamePage() {
     });
     if (state.steamDb) applySteamDbUi(state.steamDb, token, { final: true });
     updateUnifiedRatingWidget(state);
+    rehydrateChartsUi();
   };
 
   // Links that don't depend on Steam can appear immediately; cache hits paint in the same tick.
