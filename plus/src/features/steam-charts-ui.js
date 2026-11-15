@@ -207,14 +207,19 @@ export function renderSvgChart(boxEl, points, isPrice = false) {
     cursorDot.setAttribute('cy', cy);
     cursorDot.style.display = 'block';
 
-    tooltip.style.left = `${cx}px`;
-    tooltip.style.top = `${cy}px`;
-    tooltip.style.display = 'block';
-
     const unit = isPrice
       ? (cachedPriceOverview?.currency ? ` ${CURRENCY_SYMBOLS[cachedPriceOverview.currency] || cachedPriceOverview.currency}` : '')
       : ` ${t.players || 'игроков'}`;
     tooltip.innerHTML = `<strong>${formatNumber(tooltipVal)}${unit}</strong><br><span style="opacity:0.75">${formatDate(tooltipDate)}</span>`;
+    tooltip.style.display = 'block';
+
+    const tipW = tooltip.offsetWidth || 100;
+    const tipH = tooltip.offsetHeight || 42;
+    const clampedX = Math.max(tipW / 2 + 6, Math.min(cx, width - tipW / 2 - 6));
+    const showBelow = cy < tipH + 14;
+    tooltip.style.left = `${clampedX}px`;
+    tooltip.style.top = `${cy}px`;
+    tooltip.style.transform = showBelow ? 'translate(-50%, 16%)' : 'translate(-50%, -120%)';
   };
 
   boxEl.addEventListener('pointermove', handlePointer);
