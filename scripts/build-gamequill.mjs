@@ -57,9 +57,15 @@ async function buildTarget(entryRel, outRel) {
       {
         name: 'raw-css-text',
         enforce: 'pre',
+        resolveId(source, importer) {
+          if (source.endsWith('.css') && importer) {
+            return '\0raw-css:' + path.resolve(path.dirname(importer), source);
+          }
+        },
         load(id) {
-          if (id.endsWith('.css')) {
-            return `export default ${JSON.stringify(fs.readFileSync(id, 'utf8'))};`;
+          if (id.startsWith('\0raw-css:')) {
+            const filePath = id.slice('\0raw-css:'.length);
+            return `export default ${JSON.stringify(fs.readFileSync(filePath, 'utf8'))};`;
           }
         },
       },
