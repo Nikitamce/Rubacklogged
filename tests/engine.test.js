@@ -173,9 +173,20 @@ test('formats quarters, hours and durations', () => {
   assert.equal(translator.translate('2027 Q2'), '2 кв. 2027');
   assert.equal(translator.translate('16h'), '16 ч');
   assert.equal(translator.translate('0.5h'), '0,5 ч');
+  assert.equal(translator.translate('16h 24m'), '16 ч 24 мин');
   assert.equal(translator.translate('h'), 'ч');
   assert.equal(translator.translate('30 minutes'), '30 минут');
   assert.equal(translator.translate('5 hours'), '5 часов');
+  assert.equal(translator.translate('3 days'), '3 дня');
+});
+
+test('formats short relative times and badge lines', () => {
+  assert.equal(translator.translate('just now'), 'только что');
+  assert.equal(translator.translate('a minute ago'), '1 минуту назад');
+  assert.equal(translator.translate('an hour ago'), '1 час назад');
+  assert.equal(translator.translate('41 mins ago'), '41 минуту назад');
+  assert.equal(translator.translate('Top Critic Average Ratings (82%)'), 'Top Critic Average Оценки (82%)');
+  assert.equal(translator.translate('You earned the Curator badge.'), 'Получен значок «Curator»');
 });
 
 test('formats genre/platform prefixes and review stats', () => {

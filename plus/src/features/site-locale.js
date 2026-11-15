@@ -334,14 +334,30 @@ function createEngine(code, dict) {
     return null;
   }
 
-  const attrOk = new Set(['placeholder', 'title', 'aria-label', 'aria-description', 'alt', 'data-original-title', 'data-title', 'data-content', 'data-text', 'value']);
+  // Presentational attributes only. Never translate `value`: on <option> / <input>
+  // it is the value submitted with the form, and arbitrary data-* values can be
+  // read by the site's own scripts.
+  const attrOk = new Set([
+    'placeholder',
+    'title',
+    'aria-label',
+    'aria-description',
+    'alt',
+    'data-original-title',
+    'data-title',
+    'data-content',
+    'data-text',
+    'data-bs-original-title',
+    'data-bs-content',
+    'data-tooltip',
+    'data-tooltip-content',
+  ]);
 
   function translateAttrs(el) {
     if (!el || el.nodeType !== 1 || !el.attributes || isPlusUi(el)) return;
     for (const attr of el.attributes) {
       const name = attr.name.toLowerCase();
-      if (!attrOk.has(name) && !name.startsWith('data-')) continue;
-      if (name === 'data-target' || name === 'data-action' || name === 'data-controller') continue;
+      if (!attrOk.has(name)) continue;
       const value = attr.value;
       const visible = name === 'placeholder' || name === 'title' || name === 'aria-label' || name === 'aria-description';
       if (!value || value.length > 240) continue;
@@ -351,7 +367,9 @@ function createEngine(code, dict) {
     }
     if (el.tagName === 'INPUT') {
       const type = (el.getAttribute('type') || '').toLowerCase();
-      if (type === 'submit' || type === 'button' || type === 'reset') {
+      // A named submit button's value is part of the submitted form data.
+      const submitsData = type === 'submit' && el.hasAttribute('name');
+      if (!submitsData && (type === 'submit' || type === 'button' || type === 'reset')) {
         const next = translateText(el.value, el);
         if (next != null && next !== el.value) el.value = next.trim();
       }

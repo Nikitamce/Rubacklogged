@@ -10,7 +10,7 @@
 // @name:ko            Backloggd Plus
 // @name:pl            Backloggd Plus
 // @namespace          https://github.com/NemoKing1210/backloggd-plus
-// @version            0.7.99
+// @version            0.9.0
 // @author             NemoKing1210
 // @description        Extends Backloggd and adds a Backloggd button on Steam game pages
 // @description:ru     Расширяет Backloggd и добавляет кнопку Backloggd на страницах игр Steam
@@ -35,6 +35,9 @@
 // @match              https://store.steampowered.com/app/*
 // @match              https://steamcommunity.com/app/*
 // @match              https://steamdb.info/app/*
+// @require            https://cdn.jsdelivr.net/npm/systemjs@6.15.1/dist/system.min.js
+// @require            https://cdn.jsdelivr.net/npm/systemjs@6.15.1/dist/extras/named-register.min.js
+// @require            data:application/javascript,%3B(typeof%20System!%3D'undefined')%26%26(System%3Dnew%20System.constructor())%3B
 // @tag                backloggd
 // @tag                games
 // @connect            www.backloggd.com

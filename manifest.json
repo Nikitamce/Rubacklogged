@@ -3,40 +3,48 @@
   "default_locale": "en",
   "name": "__MSG_extName__",
   "description": "__MSG_extDesc__",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "minimum_chrome_version": "102",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": [
-    "storage"
-  ],
+  "permissions": ["storage"],
   "host_permissions": [
-    "*://backloggd.com/*",
-    "*://www.backloggd.com/*",
-    "*://store.steampowered.com/*",
-    "*://api.steampowered.com/*",
-    "*://steamdb.info/*",
-    "*://howlongtobeat.com/*",
-    "*://*.protondb.com/*",
-    "*://*.opencritic.com/*",
-    "*://*.gamestatus.info/*",
-    "*://*.pcgamingwiki.com/*",
-    "*://*.isthereanydeal.com/*",
-    "*://*.steamcharts.com/*",
-    "*://*.augmentedsteam.com/*",
-    "*://*.gameslike.co/*",
-    "*://*.gogdb.org/*",
-    "*://*.jsdelivr.net/*",
-    "*://*.pages.dev/*",
-    "*://translate.googleapis.com/*",
-    "*://*.metacritic.com/*",
-    "*://*.duckduckgo.com/*",
-    "*://opencritic-api.p.rapidapi.com/*",
-    "*://steamcommunity.com/*",
-    "*://*.howlongtobeat.com/*"
+    "https://backloggd.com/*",
+    "https://www.backloggd.com/*",
+    "https://store.steampowered.com/*",
+    "https://api.steampowered.com/*",
+    "https://steamcommunity.com/*",
+    "https://steamdb.info/*",
+    "https://howlongtobeat.com/*",
+    "https://www.howlongtobeat.com/*",
+    "https://protondb.com/*",
+    "https://www.protondb.com/*",
+    "https://opencritic.com/*",
+    "https://www.opencritic.com/*",
+    "https://api.opencritic.com/*",
+    "https://gamestatus.info/*",
+    "https://www.gamestatus.info/*",
+    "https://pcgamingwiki.com/*",
+    "https://www.pcgamingwiki.com/*",
+    "https://isthereanydeal.com/*",
+    "https://www.isthereanydeal.com/*",
+    "https://steamcharts.com/*",
+    "https://www.steamcharts.com/*",
+    "https://api.augmentedsteam.com/*",
+    "https://gameslike.co/*",
+    "https://www.gameslike.co/*",
+    "https://gogdb.org/*",
+    "https://www.gogdb.org/*",
+    "https://cdn.jsdelivr.net/*",
+    "https://latest.currency-api.pages.dev/*",
+    "https://translate.googleapis.com/*",
+    "https://metacritic.com/*",
+    "https://www.metacritic.com/*",
+    "https://html.duckduckgo.com/*",
+    "https://opencritic-api.p.rapidapi.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -52,32 +60,26 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://backloggd.com/*",
-        "*://www.backloggd.com/*"
-      ],
+      "matches": ["https://backloggd.com/*", "https://www.backloggd.com/*"],
       "js": [
+        "lib/systemjs-loader.js",
         "lib/gm-polyfill.js",
         "lib/engine.js",
         "locales/ru.js",
         "content.js",
         "lib/plus-bundle.js"
       ],
-      "css": [
-        "content.css"
-      ],
+      "css": ["content.css"],
       "run_at": "document_start"
     },
     {
       "matches": [
-        "*://store.steampowered.com/*",
-        "*://steamdb.info/*"
+        "https://store.steampowered.com/app/*",
+        "https://steamcommunity.com/app/*",
+        "https://steamdb.info/app/*"
       ],
-      "js": [
-        "lib/gm-polyfill.js",
-        "lib/plus-bundle.js"
-      ],
-      "run_at": "document_end"
+      "js": ["lib/systemjs-loader.js", "lib/gm-polyfill.js", "lib/plus-bundle.js"],
+      "run_at": "document_idle"
     }
   ]
 }

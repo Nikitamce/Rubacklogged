@@ -12,6 +12,11 @@ Userscript that extends [Backloggd](https://www.backloggd.com) with extra game i
 - Install (newest): https://raw.githubusercontent.com/NemoKing1210/backloggd-plus/main/backloggd-plus.user.js
 - Changelog: https://github.com/NemoKing1210/backloggd-plus/blob/main/CHANGELOG.md
 
+## Features
+
+- Home page block visibility (signed-in feed and guest landing sections; Settings → Home page)
+- Faster review translation: cached plain-text extraction, 3-card auto-translation queue, request backoff, and POST for long texts
+
 ## Screenshots
 
 ![Game page — Steam enrichment, Deck/Proton, GameStatus, and quick links](https://raw.githubusercontent.com/NemoKing1210/backloggd-plus/main/docs/screenshots/game-page-steam.png)
@@ -34,7 +39,7 @@ Userscript that extends [Backloggd](https://www.backloggd.com) with extra game i
 - **Fix match** — override the automatic Steam App ID when store search is wrong (saved per slug); leave the App ID blank to mark a game as not on Steam
 - SteamDB visuals: app icon before the title, logo under **Change cover**, online player count
 - SteamDB details row: franchise / OS from Steam store APIs; technologies & last record update from SteamDB when reachable
-- Export button under the Steam header and in the log editor (optional; Settings → Game; Notion CSV / Markdown / JSON)
+- Export button under the Steam header and in the log editor (optional; Settings → Game; Notion CSV / Markdown / JSON); export currently loaded collection cards as JSON
 - Optional Backloggd game ID after the title (Settings → Game; click to copy)
 - Translate buttons on the game description and review cards (Settings → Translation; Google Translate)
 - Steam header / community icon on game pages; screenshot gallery after game stats

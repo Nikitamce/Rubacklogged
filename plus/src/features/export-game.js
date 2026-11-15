@@ -104,9 +104,18 @@ export function formatExportRating(score10, style = 'text') {
 }
 
 export function csvEscape(value) {
-  const s = value == null ? '' : String(value);
+  let s = value == null ? '' : String(value);
+  // Spreadsheet formula injection: prefix cells that Excel / Sheets evaluate.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
+}
+
+/** Prevent raw HTML in exported Markdown from rendering in HTML-aware viewers. */
+function mdText(value) {
+  return String(value ?? '')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 export function rowsToCsv(rows, columns = EXPORT_COLUMNS) {
@@ -528,10 +537,10 @@ export function buildNotionCsv(record, opts = {}) {
 /** Notion-style page markdown: `# Title` + `Property: value` lines (same columns as CSV). */
 export function buildNotionMarkdown(record, opts = {}) {
   const row = buildExportRow(record, opts);
-  const lines = [`# ${row.Name || 'Untitled'}`, ''];
+  const lines = [`# ${mdText(row.Name || 'Untitled')}`, ''];
   for (const col of EXPORT_COLUMNS) {
     if (col === 'Name') continue;
-    lines.push(`${col}: ${row[col] ?? ''}`);
+    lines.push(`${col}: ${mdText(row[col] ?? '')}`);
   }
   return `${lines.join('\n')}\n`;
 }

@@ -58,6 +58,13 @@ for (const name of ARTIFACT_FILES) {
   console.log(`ok  dist ↔ root  ${name}  (${distHash.slice(0, 12)}…)`);
 }
 
+const extensionBundle = join(root, '..', 'lib', 'plus-bundle.js');
+if (!existsSync(extensionBundle)) fail('missing ../lib/plus-bundle.js');
+if (sha256(extensionBundle) !== sha256(join(distDir, 'backloggd-plus.user.js'))) {
+  fail('../lib/plus-bundle.js differs from the production build. Re-run npm run build.');
+}
+console.log('ok  dist ↔ extension  lib/plus-bundle.js');
+
 if (!checkGit) {
   console.log('ok  skipped git freshness check (set CI=true or pass --git)');
   process.exit(0);

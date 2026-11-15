@@ -20,7 +20,7 @@
 
 | Задача / Что нужно изменить | Основной файл | Дополнительный файл |
 | :--- | :--- | :--- |
-| **Добавить перевод статического текста** (кнопка, лейбл, меню, бейдж) | `locales/ru.js` (объект `strings`) | `plus/src/i18n/site/ru.json` |
+| **Добавить перевод статического текста** (кнопка, лейбл, меню, бейдж) | `locales/ru.js` (объект `strings`) | `plus/src/i18n/site/ru.json` генерируется сборкой |
 | **Динамический текст с переменными** (числа, даты, `Liked 25+ games`, плюрализация) | `locales/ru.js` (массив `patterns`) | `plus/src/features/site-locale.js` (`dynamicTranslations`) |
 | **Контекстно-зависимый перевод** (например, «On» = «Вкл.» только в настройках, но «на» в платформе) | `locales/ru.js` (массив `contexts`) | — |
 | **Стили переключателя языков и текстовых псевдоэлементов (`::after`)** | `content.css` | `plus/src/styles/main.css` |
@@ -41,10 +41,7 @@
    ```javascript
    'Top Shelf': 'Верхняя полка',
    ```
-2. Продублировать в `plus/src/i18n/site/ru.json`:
-   ```json
-   "Top Shelf": "Верхняя полка",
-   ```
+2. Выполнить `npm run build`: `plus/src/i18n/site/ru.json` будет сгенерирован автоматически.
 
 ### Сценарий Б. Строка с динамическими параметрами
 Если в строке есть числа, даты, имена (например, `Liked 25+ games`, `in addition to 5 extras`):
@@ -153,43 +150,11 @@ npm test
 На Windows `vite build` часто падает с ошибкой `Access is denied` при попытке очистить временную системную папку `esbuild`.
 **Всегда собирайте через изолированный скрипт:**
 ```powershell
-$tmpDir = Join-Path (Get-Location) "plus\.temp"; New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null; $env:TMP = $tmpDir; $env:TEMP = $tmpDir; try { npm --prefix plus run build; Copy-Item -Path "plus\dist\backloggd-plus.user.js" -Destination "lib\plus-bundle.js" -Force } finally { Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue }
+$tmpDir = Join-Path (Get-Location) "plus\.temp"; New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null; $env:TMP = $tmpDir; $env:TEMP = $tmpDir; try { npm run build } finally { Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue }
 ```
 
 ---
 
-## 9. Правила Git & Zero-Prompt Push
+## 9. Git
 
-### Авторы:
-- `Nikitamce` (`187407575+Nikitamce@users.noreply.github.com`)
-- `MaksVolkov7863` (`MaksVolkov7863@users.noreply.github.com`)
-
-### Пуш без интерактивных окон / зависаний:
-Используйте скрипт, достающий токен из `git credential-manager`:
-```javascript
-const { spawn, execSync } = require('child_process');
-
-function getGitHubToken(username) {
-  return new Promise((resolve) => {
-    const p = spawn('git', ['credential-manager', 'get'], { stdio: ['pipe', 'pipe', 'inherit'] });
-    let out = '';
-    p.stdout.on('data', d => out += d);
-    p.on('close', () => {
-      let pass = '';
-      out.split('\n').forEach(l => { if (l.startsWith('password=')) pass = l.slice(9).trim(); });
-      resolve(pass);
-    });
-    p.stdin.write(`protocol=https\nhost=github.com\nusername=${username}\n\n`);
-    p.stdin.end();
-  });
-}
-
-async function pushDirect(repoUrl, branch, username) {
-  const token = await getGitHubToken(username);
-  if (!token) throw new Error(`No token for ${username}`);
-  const authedUrl = `https://${encodeURIComponent(username)}:${encodeURIComponent(token)}@github.com/Nikitamce/Rubacklogged.git`;
-  execSync(`git push "${authedUrl}" ${branch}`, { stdio: 'inherit' });
-}
-
-pushDirect('https://github.com/Nikitamce/Rubacklogged.git', 'mixed', 'Nikitamce');
-```
+Для аутентификации используйте Git Credential Manager или `gh auth login`. Не извлекайте токены программно и не помещайте их в URL, команды или документацию.

@@ -100,6 +100,13 @@ html.backloggd-i18n-active #center-content #summary-expand-btn.collapsed::after 
   content: "Показать ещё" !important;
 }
 
+/* Move feedback button below the greeting/tip row so it doesn't overlap */
+html.backloggd-i18n-active .feedback-button[feedback_type="home-page-v2"] {
+  position: static !important;
+  display: block !important;
+  margin: 6px auto 0 !important;
+}
+
 html.backloggd-i18n-active #center-content #summary-expand-btn:not(.collapsed)::after {
   content: "Свернуть" !important;
 }

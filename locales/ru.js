@@ -1806,6 +1806,15 @@
     'Welcome back': 'С возвращением',
     ', your collection awaits...': ', ваша коллекция ждёт…',
     'your collection awaits...': 'ваша коллекция ждёт…',
+    ", try shuffle sort when you can't decide what to play!": ', попробуйте случайную сортировку, когда не можете решить, во что поиграть!',
+    "try shuffle sort when you can't decide what to play!": 'попробуйте случайную сортировку, когда не можете решить, во что поиграть!',
+    'Backer Holiday Sale': 'Праздничная распродажа для бэкеров',
+    'Save 20% off an annual subscription with code:': 'Скидка 20% на годовую подписку по промокоду:',
+    'Discount only valid until November 20, 2026': 'Скидка действует только до 20 ноября 2026 года',
+    'Personalized stats': 'Персонализированная статистика',
+    'No ads': 'Без рекламы',
+    'Exclusive betas': 'Эксклюзивные бета-версии',
+    'Support the site': 'Поддержка сайта',
     'Profile Stats': 'Статистика профиля',
     'Game Ratings': 'Оценки игр',
     'Game Rating': 'Оценка игры',
@@ -3600,6 +3609,80 @@
         const count = Number(rawCount);
         return `${formatNumber(count)} ${plural(count, ['день', 'дня', 'дней'])}`;
       },
+    },
+    {
+      // "just now"
+      re: /^just now$/i,
+      replace: () => 'только что',
+    },
+    {
+      // "a minute ago", "an hour ago"
+      re: /^an?\s+(second|minute|hour|day|week|month|year)\s+ago$/i,
+      replace: (match, unit) => {
+        const u = unit.toLowerCase();
+        const forms = {
+          second: ['секунду', 'секунды', 'секунд'],
+          minute: ['минуту', 'минуты', 'минут'],
+          hour: ['час', 'часа', 'часов'],
+          day: ['день', 'дня', 'дней'],
+          week: ['неделю', 'недели', 'недель'],
+          month: ['месяц', 'месяца', 'месяцев'],
+          year: ['год', 'года', 'лет'],
+        }[u];
+        return `1 ${plural(1, forms)} назад`;
+      },
+    },
+    {
+      // "41 mins ago", "2 hours ago", "3 days ago", etc.
+      re: /^(\d+)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|weeks?|wks?|months?|mos?|years?|yrs?)\s+ago$/i,
+      replace: (match, rawCount, unit) => {
+        const count = Number(rawCount);
+        const u = unit.toLowerCase();
+        let forms;
+        if (u.startsWith('sec')) forms = ['секунду', 'секунды', 'секунд'];
+        else if (u.startsWith('min')) forms = ['минуту', 'минуты', 'минут'];
+        else if (u.startsWith('h')) forms = ['час', 'часа', 'часов'];
+        else if (u.startsWith('d')) forms = ['день', 'дня', 'дней'];
+        else if (u.startsWith('w')) forms = ['неделю', 'недели', 'недель'];
+        else if (u.startsWith('mo')) forms = ['месяц', 'месяца', 'месяцев'];
+        else forms = ['год', 'года', 'лет'];
+        return `${formatNumber(count)} ${plural(count, forms)} назад`;
+      },
+    },
+    {
+      // "82% Ratings" / rating tooltip prefix
+      re: /^(.{0,40}?)Ratings\s*\((\d+(?:[.,]\d+)?)%\)$/i,
+      replace: (match, prefix, pct) => `${prefix}Оценки (${pct}%)`,
+    },
+    {
+      // "16h 24m"
+      re: /^(\d+(?:[.,]\d+)?)\s*h(?:\s*(\d+)\s*m)?$/i,
+      replace: (match, hours, minutes) => {
+        const h = Number(String(hours).replace(',', '.'));
+        const hText = `${formatDecimal(h)} ч`;
+        if (minutes == null) return hText;
+        const m = Number(minutes);
+        return `${hText} ${formatNumber(m)} мин`;
+      },
+    },
+    {
+      // Playtime span without "ago": "2 days", "3 hours", "30 minutes"
+      re: /^(\d+)\s*(hours?|hrs?|minutes?|mins?|days?)$/i,
+      replace: (match, rawCount, unit) => {
+        const count = Number(rawCount);
+        const u = unit.toLowerCase();
+        const forms = u.startsWith('h')
+          ? ['час', 'часа', 'часов']
+          : u.startsWith('min')
+          ? ['минуту', 'минуты', 'минут']
+          : ['день', 'дня', 'дней'];
+        return `${formatNumber(count)} ${plural(count, forms)}`;
+      },
+    },
+    {
+      // "You earned the Curator badge."
+      re: /^You earned the (.+?) badge\.?$/i,
+      replace: (match, name) => `Получен значок «${name}»`,
     },
     {
       // "Genre: Adventure"

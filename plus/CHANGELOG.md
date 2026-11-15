@@ -5,6 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-11-15
+
+### Added
+
+- Settings → Home page: choose which signed-in feed and guest landing blocks stay visible (all 10 UI languages; included in settings backups).
+- Faster review translation: cached plain-text extraction, fewer repeat DOM scans, a 3-card auto-translation queue, 30-second error backoff, and POST for texts too long for a GET URL.
+- Russian locale patterns for `just now`, singular relative times, rating shares, `16h 24m`, playtime spans, and earned-badge lines.
+- Toolchain updated to Vite 8 and vite-plugin-monkey 8.
+
+### Security
+
+- Merged upstream 0.7.101 hardening: only presentational site-language attributes are translated, page-derived URLs must be HTTP(S), CSV blocks spreadsheet formulas, Markdown escapes raw HTML, and user markup is parsed in an inert document.
+- Mini-profile cards are excluded from Turbo snapshots and reset on navigation / bfcache restore (upstream 0.7.103).
+
+## [0.8.0] - 2026-11-15
+
+### Added
+
+- Export the games currently loaded on a Backloggd page as JSON when game export is enabled.
+- Debug-mode network diagnostics with status, errors, and timeouts.
+- Unit tests for locale synchronization and Steam title matching.
+
+### Changed
+
+- The Russian site dictionary is generated from the extension's canonical locale during every build.
+- Builds update both the userscript and the extension bundle.
+- The Chrome extension network bridge now supports credentials, anonymity, timeouts, and protected RapidAPI key storage.
+
 ## [0.7.99] - 2026-10-17
 
 ### Added

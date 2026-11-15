@@ -1,10 +1,13 @@
 {
   "name": "backloggd-i18n-ru",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "private": true,
   "description": "Safe Russian interface translation for Backloggd.com (Manifest V3 extension).",
   "scripts": {
-    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js && node tests/locale-detection.test.js"
+    "test": "node tests/engine.test.js && node tests/dictionary.test.js && node tests/content.test.js && node tests/locale-detection.test.js && node --test tests/background.test.js tests/gm-polyfill.test.js tests/manifest.test.js",
+    "test:all": "npm test && npm --prefix plus test",
+    "build": "npm --prefix plus run build",
+    "ci": "npm run test:all && npm run build && npm --prefix plus run verify:artifacts"
   },
   "engines": {
     "node": ">=18"

@@ -9,7 +9,7 @@ import {
 import { debounce } from '../utils/debounce.js';
 import { scheduleCardBadges } from './cards.js';
 import { enrichGamePage } from './enrichment.js';
-import { applyHomepageFuseVisibility } from './homepage.js';
+import { applyHomepageBlockVisibility, applyHomepageFuseVisibility } from './homepage.js';
 import { applyFloatingHeader } from './header.js';
 import { bindFixMatchClicks, ensureNavSettingsButton } from './settings-panel.js';
 import { bindLogEditorExportObserver, ensureLogEditorExportMount } from './export-game.js';
@@ -17,6 +17,8 @@ import { scheduleUserMiniProfiles } from './user-mini-profile.js';
 import { scheduleGameMiniProfiles } from './game-mini-profile.js';
 import { scheduleProfilePage } from './profile-page.js';
 import { syncTranslateUi } from './translate.js';
+import { ensureCollectionExport } from './export-collection.js';
+import { ensureDiagnostics } from './diagnostics.js';
 
 export function scanPage() {
   ensureNavSettingsButton();
@@ -24,6 +26,7 @@ export function scanPage() {
   bindLogEditorExportObserver();
   ensureLogEditorExportMount();
   applyHomepageFuseVisibility();
+  applyHomepageBlockVisibility();
   applyFloatingHeader();
   enrichGamePage();
   scheduleCardBadges();
@@ -31,6 +34,8 @@ export function scanPage() {
   scheduleGameMiniProfiles();
   scheduleProfilePage();
   syncTranslateUi();
+  ensureCollectionExport();
+  ensureDiagnostics();
 }
 
 export function isBlpManagedElement(el) {
@@ -47,7 +52,9 @@ export function isBlpManagedElement(el) {
     el.id === 'blp-nav-settings' ||
     el.id === 'blp-profile-menu-settings' ||
     el.id === 'blp-steam-backloggd-btn' ||
-    el.id === 'blp-steamdb-backloggd-btn'
+    el.id === 'blp-steamdb-backloggd-btn' ||
+    el.id === 'blp-export-collection' ||
+    el.id === 'blp-network-diagnostics'
   ) {
     return true;
   }

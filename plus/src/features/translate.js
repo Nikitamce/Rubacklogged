@@ -11,12 +11,13 @@ const STATE_ATTR = 'data-blp-translate-state';
 const ORIG_ATTR = 'data-blp-translate-original';
 const AUTO_ATTR = 'data-blp-translate-auto';
 const AUTO_ROOT_MARGIN = '120px 0px';
-const AUTO_CONCURRENCY = 2;
+const AUTO_CONCURRENCY = 3;
 
 let clicksBound = false;
 let autoObserver = null;
 let autoActive = 0;
 const autoQueue = [];
+const plainTextCache = new WeakMap();
 
 function resolveTranslateTarget() {
   const pref = settings.translateTargetLocale || 'auto';
@@ -29,10 +30,30 @@ function displayMode() {
 }
 
 function htmlToPlain(html) {
-  const div = document.createElement('div');
-  div.innerHTML = String(html || '');
-  div.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-  return (div.textContent || '').replace(/\u00a0/g, ' ').trim();
+  const source = String(html || '');
+  try {
+    // Parse in an inert document: images and other resources inside
+    // page-supplied markup are not loaded or re-executed.
+    const doc = new DOMParser().parseFromString(source, 'text/html');
+    doc.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+    return (doc.body?.textContent || '').replace(/\u00a0/g, ' ').trim();
+  } catch (_) {
+    // Very old managers can expose DOMParser only through the page window.
+    const div = document.createElement('div');
+    div.innerHTML = source;
+    div.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+    return (div.textContent || '').replace(/\u00a0/g, ' ').trim();
+  }
+}
+
+function elementPlainText(textEl, sourceHtml = textEl?.innerHTML) {
+  const html = sourceHtml == null ? '' : String(sourceHtml);
+  let record = plainTextCache.get(textEl);
+  if (record && record.html === html) return record.plain;
+  const plain = htmlToPlain(html);
+  record = { html, plain };
+  plainTextCache.set(textEl, record);
+  return plain;
 }
 
 function plainToHtml(text) {
@@ -130,7 +151,7 @@ function ensureDescriptionButton() {
   const textEl = findDescriptionTextEl();
   const summary = document.querySelector('#collapseSummary');
   if (!textEl || !summary) return;
-  if (!htmlToPlain(textEl.innerHTML)) return;
+  if (!elementPlainText(textEl)) return;
 
   summary.setAttribute(MARK_ATTR, 'desc');
 
@@ -194,7 +215,7 @@ function ensureDescriptionButton() {
 function ensureReviewButton(card) {
   if (card.parentElement?.closest('.review-card')) return;
   const textEl = findReviewTextEl(card);
-  if (!textEl || !htmlToPlain(textEl.innerHTML)) return;
+  if (!textEl || !elementPlainText(textEl)) return;
   const bars = [...card.querySelectorAll('.review-bottom-bar')].filter(
     (bar) => !bar.parentElement?.closest('.review-bottom-bar') && bar.closest('.review-card') === card
   );
@@ -383,7 +404,7 @@ async function applyTranslation({ textEl, host, card, btn, isReview, expand = tr
 
   const sourceHtml =
     textEl.hasAttribute(ORIG_ATTR) ? textEl.getAttribute(ORIG_ATTR) : textEl.innerHTML;
-  const plain = htmlToPlain(sourceHtml);
+  const plain = elementPlainText(textEl, sourceHtml);
   if (!plain) return 'skip';
 
   const tl = resolveTranslateTarget();
@@ -556,7 +577,7 @@ function syncAutoTranslate() {
       return;
     }
     const textEl = findReviewTextEl(card);
-    if (!textEl || !htmlToPlain(textEl.innerHTML)) return;
+    if (!textEl || !elementPlainText(textEl)) return;
     autoObserver.observe(card);
   });
 }

@@ -20,7 +20,7 @@ Built with [Vite](https://vitejs.dev/) + [vite-plugin-monkey](https://github.com
 - **Docs:** `README.md`, `DEVELOPMENT.md`, `CONTRIBUTING.md`, `CHANGELOG.md` (Keep a Changelog + SemVer), `docs/screenshots/`, `docs/platforms/` (Greasy Fork / ScriptCat listing copy)
 - **License:** MIT
 
-Edit source under `src/`, then run `npm run build` to refresh the root install files. Do not hand-edit the built `.user.js` / `.meta.js`.
+Edit source under `src/`, then run `npm run build` to refresh the root install files and `../lib/plus-bundle.js`. Do not hand-edit built artifacts. Every build runs `scripts/sync-locale.mjs`: `../locales/ru.js` is the canonical Russian site dictionary and `src/i18n/site/ru.json` is generated.
 
 When user-facing README content changes (features, screenshots, status, supported pages, install/update notes, contributors, affiliation), keep `docs/platforms/greasyfork.md` and `docs/platforms/scriptcat.md` in sync — those files are the paste-ready Additional info for the catalog listings. Prefer absolute GitHub/`raw.githubusercontent.com` URLs in README and platform docs so images and links work outside the repo.
 
@@ -36,13 +36,14 @@ backloggd-plus/
 │   ├── cache.js             # GM lookup cache + overrides
 │   ├── gm.js                # GM_xmlhttpRequest wrapper
 │   ├── i18n/                # TRANSLATIONS (locales/*.js) + locale helpers
-│   ├── utils/               # html, title match, debounce, slug, custom-links (quick-link templates / order), card-morph (shared mini-profile soft update)
+│   ├── utils/               # html, title match, debounce, slug, custom-links, card-morph, popover reset
 │   ├── styles/              # CSS (injected via vite-plugin-monkey)
 │   ├── api/                 # Steam, SteamDB meta, HLTB, OpenCritic, ProtonDB, GameStatus
 │   └── features/            # Enrichment, gallery, cards, settings UI, toasts, host pages
 ├── scripts/
-│   ├── copy-dist.mjs        # Copies dist → root after build
-│   ├── verify-artifacts.mjs # CI: dist ↔ root + git freshness
+│   ├── sync-locale.mjs      # Generates src/i18n/site/ru.json from the extension locale
+│   ├── copy-dist.mjs        # Copies dist → root + ../lib/plus-bundle.js + ../lib/systemjs-loader.js
+│   ├── verify-artifacts.mjs # CI: dist ↔ root ↔ extension + git freshness
 │   └── lib/artifacts.mjs    # Shared artifact filenames
 ├── docs/
 │   ├── screenshots/         # README / catalog preview images

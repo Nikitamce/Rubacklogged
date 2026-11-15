@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.3.0 — 2026-11-15
+
+- Перенесены исправления безопасности upstream 0.7.101: безопасные URL, ограничение переводимых атрибутов, защита CSV от формул, экранирование Markdown и inert-парсинг HTML.
+- Добавлена настройка видимости блоков главной страницы из upstream 0.7.102.
+- Исправлено восстановление «залипших» мини-профилей после Turbo/bfcache из upstream 0.7.103.
+- Добавлены недостающие шаблоны локализации 0.7.100.
+- Ускорен перевод рецензий: кэш plain-текста, меньше повторных DOM-проходов, три параллельных запроса, backoff ошибок и POST для длинных текстов.
+- Toolchain Plus обновлён до Vite 8 и vite-plugin-monkey 8; для Chrome-расширения добавлен локальный SystemJS-loader, без которого Plus не запускался.
+- GitHub Actions закреплён commit SHA и ограничен минимальный набор permissions.
+
+## 2.2.0 — 2026-11-15
+
+- API-ключ RapidAPI перенесён из `localStorage` сайта в `chrome.storage.local`; добавлена миграция существующих настроек.
+- Фоновые запросы получили allowlist HTTPS-хостов, таймауты, cookies Steam, ограничение размера ответа и корректные ошибки.
+- Добавлена поддержка кнопки Backloggd на страницах Steam Community.
+- Разрешения ограничены HTTPS и конкретными доменами.
+- Русский словарь Plus синхронизируется с основным при сборке; бандл расширения обновляется автоматически.
+- Добавлены экспорт видимой коллекции в JSON и журнал сетевой диагностики.
+- Добавлены тесты сетевого слоя, общий CI, политика приватности и полное README.
+
 ## 2.0.9 — 2026-11-04
 
 - Страница настроек: переведены подписи сайдбара (`Customize your avatar and profile`, `Set your defaults across the site`, `Customize how you're notified`, `Connect your Patreon account`, `Manage your Backloggd data`, `Update your email / password`, `Hook into external sites / apps`, `Cleanup lost game logs`, `Manage blocked users`, `View your account's status`, `Infractions`).

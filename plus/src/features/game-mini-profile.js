@@ -23,6 +23,7 @@ import { settings, t } from '../state.js';
 import { escapeAttr, escapeHtml } from '../utils/html.js';
 import { morphCard } from '../utils/card-morph.js';
 import { debounce } from '../utils/debounce.js';
+import { bindPopoverReset, dropPopoverCopies } from '../utils/popover-reset.js';
 import {
   parseCardAppId,
   parseCardSlug,
@@ -149,6 +150,7 @@ function ensurePopover() {
   popoverEl.className = 'blp-gmp';
   popoverEl.setAttribute('role', 'dialog');
   popoverEl.setAttribute('aria-hidden', 'true');
+  popoverEl.setAttribute('data-turbo-temporary', '');
   popoverEl.addEventListener('pointerenter', () => {
     window.clearTimeout(closeTimer);
   });
@@ -732,6 +734,25 @@ function trackPosition(cover, ms = 520) {
   requestAnimationFrame(step);
 }
 
+/** Drop the card and invalidate pending work after navigation / bfcache restore. */
+function resetGameMiniProfile() {
+  paintSeq += 1;
+  fetchSeq += 1;
+  trackSeq += 1;
+  window.clearTimeout(openTimer);
+  window.clearTimeout(closeTimer);
+  window.clearTimeout(leaveTimer);
+  if (popoverEl && leaveHandler) {
+    popoverEl.removeEventListener('transitionend', leaveHandler);
+  }
+  leaveHandler = null;
+  activeCover?.removeAttribute?.(HOVER_ATTR);
+  activeCover = null;
+  activeSlug = '';
+  popoverEl = null;
+  dropPopoverCopies(`#${POPOVER_ID}`);
+}
+
 async function paintCard(cover, ctx, { soft = false } = {}) {
   const el = ensurePopover();
   const seq = ++paintSeq;
@@ -934,6 +955,7 @@ export function bindGameMiniProfiles() {
   }
   if (bound) return;
   bound = true;
+  bindPopoverReset(resetGameMiniProfile);
   document.addEventListener('pointerover', onPointerOver, true);
   document.addEventListener('pointerout', onPointerOut, true);
   document.addEventListener('contextmenu', onClickTrigger, true);

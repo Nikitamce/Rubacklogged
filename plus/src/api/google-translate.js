@@ -10,12 +10,23 @@ import { inflight } from '../state.js';
 const GTX_URL = 'https://translate.googleapis.com/translate_a/single';
 
 function hashText(s) {
-  let h = 5381;
   const str = String(s);
+  // Two independent 32-bit hashes plus the length make accidental cache-key
+  // collisions across long user reviews practically negligible.
+  let h1 = 5381;
+  let h2 = 52711;
   for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) + h) ^ str.charCodeAt(i);
+    h1 = ((h1 << 5) + h1) ^ str.charCodeAt(i);
+    h2 = (Math.imul(h2, 33) ^ str.charCodeAt(i)) >>> 0;
   }
-  return (h >>> 0).toString(36);
+  return `${str.length.toString(36)}:${(h1 >>> 0).toString(36)}:${h2.toString(36)}`;
+}
+
+const FAILURE_BACKOFF_MS = 30_000;
+const recentFailures = new Map();
+
+function failureBackoffKey(text, targetLang) {
+  return `${targetLang}:${hashText(text)}`;
 }
 
 function joinSegments(data) {
@@ -51,25 +62,50 @@ export async function translateText(text, targetLang) {
   if (cached && typeof cached.text === 'string') return asCacheHit(cached);
   if (inflight.has(cacheKey)) return inflight.get(cacheKey);
 
+  const failureKey = failureBackoffKey(plain, tl);
+  const failedAt = recentFailures.get(failureKey) || 0;
+  if (Date.now() - failedAt < FAILURE_BACKOFF_MS) return null;
+
   const task = (async () => {
-    const url =
-      `${GTX_URL}?client=gtx&sl=auto&tl=${encodeURIComponent(tl)}` +
-      `&dt=t&q=${encodeURIComponent(plain)}`;
+    const params = new URLSearchParams({
+      client: 'gtx',
+      sl: 'auto',
+      tl,
+      dt: 't',
+      q: plain,
+    });
+    const query =
+      `client=gtx&sl=auto&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(plain)}`;
+    const longBody = plain.length > 1800;
     const data = await gmRequest({
-      url,
+      url: longBody ? GTX_URL : `${GTX_URL}?${query}`,
+      method: longBody ? 'POST' : 'GET',
+      data: longBody ? params.toString() : undefined,
+      // Cookies can trigger Google consent/anti-abuse responses. Translation
+      // must be anonymous, unlike Steam Owned/Wishlist session requests.
+      anonymous: true,
       responseType: 'json',
-      headers: { Accept: 'application/json' },
-      timeout: 20000,
+      headers: longBody
+        ? { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }
+        : { Accept: 'application/json' },
+      timeout: 12000,
     });
     const translated = joinSegments(data).trim();
-    if (!translated) return null;
+    if (!translated) {
+      recentFailures.set(failureKey, Date.now());
+      return null;
+    }
+    recentFailures.delete(failureKey);
     const payload = {
       text: translated,
       detectedSourceLang: detectedLang(data),
     };
     setCached(cacheKey, payload);
     return asCacheMiss(payload);
-  })().catch(() => null);
+  })().catch(() => {
+    recentFailures.set(failureKey, Date.now());
+    return null;
+  });
 
   inflight.set(cacheKey, task);
   try {

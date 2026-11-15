@@ -116,6 +116,9 @@
     '#blp-profile-menu-settings',
     '#blp-user-mini-profile',
     '#blp-game-mini-profile',
+    '#blp-export-collection',
+    '#blp-network-diagnostics',
+    '.blp-diagnostics',
   ].join(',');
 
   // Expand/collapse controls are UI even when they sit inside a protected

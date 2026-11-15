@@ -18,6 +18,30 @@ html[data-blp-hide-homepage-fuse="1"] .row:has(> .col:only-child > .prosper-adfr
   display: none !important;
 }
 
+/* Home page block visibility (Settings → Home page). */
+html[data-blp-home="1"][data-blp-home-hidden~="widgets"] main > .container > .row:has(.widget-slot-edit),
+html[data-blp-home="1"][data-blp-home-hidden~="widgets"] main > .container > .row:has(#widget-preview),
+html[data-blp-home="1"][data-blp-home-hidden~="popular-friends"] main > .container > .row:has(#popular-games-friends),
+html[data-blp-home="1"][data-blp-home-hidden~="friends-activity"] main > .container > .row:has(#friends-activity),
+html[data-blp-home="1"][data-blp-home-hidden~="trending"] main > .container > .row:has(#trending-games),
+html[data-blp-home="1"][data-blp-home-hidden~="trending"] main > .container > .row:has(#landing-recently-trending),
+html[data-blp-home="1"][data-blp-home-hidden~="news"] main > .container > .row:has(.news-article-v2),
+html[data-blp-home="1"][data-blp-home-hidden~="news"] main > .container > .row:has(a[href^="/about/recent-news"]),
+html[data-blp-home="1"][data-blp-home-hidden~="friend-reviews"] main > .container > .row:has(a[href^="/reviews/friends"]),
+html[data-blp-home="1"][data-blp-home-hidden~="popular-reviews"] main > .container > .row:has(a[href^="/reviews/trending"]),
+html[data-blp-home="1"][data-blp-home-hidden~="friend-lists"] main > .container > .row:has(a[href^="/lists/friends"]),
+html[data-blp-home="1"][data-blp-home-hidden~="popular-lists"] main > .container > .row:has(.home-page-lists):not(:has(a[href^="/lists/friends"])),
+html[data-blp-home="1"][data-blp-home-hidden~="coming-soon"] main > .container > .row:has(#coming-soon) > .col-12.col-md-4:nth-child(1),
+html[data-blp-home="1"][data-blp-home-hidden~="anticipated"] main > .container > .row:has(#coming-soon) > .col-12.col-md-4:nth-child(2),
+html[data-blp-home="1"][data-blp-home-hidden~="sleeper"] main > .container > .row:has(#coming-soon) > .col-12.col-md-4:nth-child(3),
+html[data-blp-home="1"][data-blp-home-hidden~="promo"] main > .container > a.d-contents:has(.alert),
+html[data-blp-home="1"][data-blp-home-hidden~="hero"] main > .container > #landing-welcome-banner,
+html[data-blp-home="1"][data-blp-home-hidden~="marquee"] main > .container > #stats-game-banner,
+html[data-blp-home="1"][data-blp-home-hidden~="about"] main > .container > #landing-about,
+html[data-blp-home="1"][data-blp-home-hidden~="showcase"] main > .container > .landing-feature-showcase {
+  display: none !important;
+}
+
 /* Floating / glass header (Settings → General → Interface) */
 html[data-blp-floating-header="1"] body > header,
 html[data-blp-floating-header="1"] header:has(#primary-nav) {
@@ -4760,3 +4784,33 @@ html.backloggd-i18n-active #interaction-sidebar a[href*="manage_lists"] {
   white-space: nowrap !important;
 }
 
+
+.blp-export-collection,
+.blp-diagnostics-button {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9990;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 35%);
+}
+
+.blp-diagnostics-button {
+  bottom: 62px;
+  padding: 8px 12px;
+  border: 1px solid var(--blp-accent, #3db89a);
+  border-radius: 6px;
+  color: inherit;
+  background: #20252b;
+}
+
+.blp-diagnostics {
+  max-width: 720px;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 24px;
+}
+
+.blp-diagnostics li {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}

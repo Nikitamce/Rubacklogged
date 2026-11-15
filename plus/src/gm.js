@@ -1,6 +1,7 @@
 import {
   GM_xmlhttpRequest,
 } from '$';
+import { recordNetworkDiagnostic } from './features/diagnostics.js';
 
 export function gmRequest(options) {
   return new Promise((resolve, reject) => {
@@ -11,6 +12,7 @@ export function gmRequest(options) {
       responseType: options.responseType || 'json',
       timeout: options.timeout || 20000,
       onload(res) {
+        recordNetworkDiagnostic(options.url, res.status);
         if (options.allow404 && res.status === 404) {
           resolve(null);
           return;
@@ -46,8 +48,14 @@ export function gmRequest(options) {
           reject(new Error(`HTTP ${res.status}`));
         }
       },
-      onerror: () => reject(new Error('Network error')),
-      ontimeout: () => reject(new Error('Timeout')),
+      onerror: () => {
+        recordNetworkDiagnostic(options.url, 'error', 'Network error');
+        reject(new Error('Network error'));
+      },
+      ontimeout: () => {
+        recordNetworkDiagnostic(options.url, 'timeout', 'Timeout');
+        reject(new Error('Timeout'));
+      },
     };
     if (typeof options.anonymous === 'boolean') {
       req.anonymous = options.anonymous;
