@@ -250,7 +250,23 @@
 <!-- всплывающие меню -->
 <div class="pop" id="blockMenu"></div>
 <div class="pop" id="expMenu"></div>
-<input type="file" id="fileIn" accept=".json,.gq,application/json" style="display:none">
+<input type="file" id="fileIn" accept=".json,.gq,.html,.htm,.txt,application/json,text/html,text/plain" style="display:none">
+
+<!-- модалка импорта обзоров -->
+<div class="mv" id="impModal">
+  <div class="mb wide">
+    <div class="mh">
+      <div><h3>⬇ Импорт обзора</h3><div class="sub">Перенос со StopGame, Steam, из BBCode/HTML или файла GameQuill</div></div>
+      <button class="mx" data-close>✕</button>
+    </div>
+    <div class="tabs" id="impTabs">
+      <button type="button" class="tab on" data-it="url">🌐 По ссылке</button>
+      <button type="button" class="tab" data-it="paste">📋 BBCode / HTML / текст</button>
+      <button type="button" class="tab" data-it="file">📄 Из файла</button>
+    </div>
+    <div class="mbody" id="impBody"></div>
+  </div>
+</div>
 
 <!-- модалка вставки -->
 <div class="mv" id="insModal">

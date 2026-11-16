@@ -1,6 +1,6 @@
 import { toB64url, vsExtract } from '../shared/gq-payload.js';
 
-const FOOTER_RE = /✦\s*Оформлено в GameQuill/;
+const FOOTER_RE = /✦\s*(?:Оформлено в|Formatted with) GameQuill/;
 const QUICK_VS = /[\uFE00-\uFE0F]|\uDB40[\uDD00-\uDDEF]/;
 
 export function isReviewPage(loc = globalThis.location) {

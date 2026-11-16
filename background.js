@@ -10,6 +10,7 @@ const ALLOWED_HOSTS = new Set([
   'www.gogdb.org', 'cdn.jsdelivr.net', 'latest.currency-api.pages.dev',
   'translate.googleapis.com', 'api.mymemory.translated.net', 'metacritic.com', 'www.metacritic.com',
   'html.duckduckgo.com', 'opencritic-api.p.rapidapi.com',
+  'stopgame.ru', 'www.stopgame.ru', 'images.stopgame.ru', 'images.steamusercontent.com', 'www.youtube.com',
 ]);
 
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024;

@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import { encodeDoc, vsEncode, vsExtract, decodeCarrier } from '../src/shared/gq-payload.js';
+import {
+  buildImportUrlCandidates,
+  detectReviewInputKind,
+} from '../src/gamequill/review-importer.js';
 import { FOOTER_TEXT, buildFallback } from '../src/shared/gq-fallback.js';
 import {
   carrierKeyFromText,
@@ -92,4 +96,13 @@ test('findReviewTextareas detects Backloggd review textarea', () => {
     },
   };
   assert.deepEqual(findReviewTextareas(fakeRoot), [ta]);
+});
+
+test('review importer builds StopGame/Steam URL candidates and detects input kinds', () => {
+  const sg = buildImportUrlCandidates('https://stopgame.ru/game/control/review/12345');
+  assert.ok(sg.some((u) => u.includes('stopgame.ru/game/control/review/12345')));
+  const st = buildImportUrlCandidates('https://steamcommunity.com/id/test/recommended/3159330');
+  assert.ok(st.some((u) => u.includes('steamcommunity.com/id/test/recommended/3159330')));
+
+  assert.equal(detectReviewInputKind('[h1]Control[/h1]\n[b]Great game[/b]'), 'bbcode');
 });

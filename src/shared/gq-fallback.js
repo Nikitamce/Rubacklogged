@@ -24,6 +24,34 @@ export var VERDICT = {
 };
 export var UNRATED = { unsure: "\u0430\u0432\u0442\u043E\u0440 \u043D\u0435 \u0443\u0432\u0435\u0440\u0435\u043D \u0432 \u043E\u0446\u0435\u043D\u043A\u0435", na: "\u043D\u0435 \u043F\u0440\u0438\u043C\u0435\u043D\u0438\u043C\u043E \u043A \u044D\u0442\u043E\u0439 \u0438\u0433\u0440\u0435" };
 export var FOOTER_TEXT = "\u2726 \u041E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u043E \u0432 GameQuill";
+export var FOOTER_TEXT_EN = "\u2726 Formatted with GameQuill";
+export var SCORES_EN = {
+  1: { t: "Unplayable", d: "Broken or completely unenjoyable", i: "\u{1F480}" },
+  2: { t: "Awful", d: "Almost nothing works here", i: "\u{1F922}" },
+  3: { t: "Bad", d: "Serious issues outweigh the good", i: "\u{1F44E}" },
+  4: { t: "Weak", d: "Below average, hard to recommend", i: "\u{1F615}" },
+  5: { t: "Mediocre", d: "Passable, but nothing special", i: "\u{1F610}" },
+  6: { t: "Decent", d: "Solid enough if you like the genre", i: "\u{1F642}" },
+  7: { t: "Good", d: "Enjoyable with a few rough edges", i: "\u{1F44D}" },
+  8: { t: "Great", d: "Memorable and well worth playing", i: "\u{1F525}" },
+  9: { t: "Amazing", d: "Outstanding in almost every way", i: "\u{1F31F}" },
+  10: { t: "Masterpiece", d: "A benchmark, must-play", i: "\u{1F451}" }
+};
+export var VERDICT_EN = {
+  yes: { e: "\u{1F44D}", t: "Recommended", c: "#4ade80" },
+  no: { e: "\u{1F44E}", t: "Not Recommended", c: "#fb7185" },
+  mixed: { e: "\u{1F914}", t: "Mixed", c: "#fbbf24" }
+};
+export var UNRATED_EN = {
+  na: "N/A",
+  unsure: "Not rated"
+};
+export function isEnglishReview(r) {
+  if (r.lang === "en") return true;
+  if (r.lang === "ru") return false;
+  const sample = [r.title || "", ...(r.blocks || []).slice(0, 4).map((b) => b.html || "")].join(" ");
+  return /[a-zA-Z]{3,}/.test(sample) && !/[\u0400-\u04FF]/.test(sample);
+}
 var C = {
   gold: "#ffc84a",
   dim: "#8b94aa",
@@ -268,33 +296,37 @@ function linkLines(b, pairs) {
 }
 export function buildFallback(r, opts = {}) {
   const win = opts.win;
+  const en = isEnglishReview(r);
+  const attachExt = !!opts.attachExternalImages;
+  const attachedMap = opts.attachedMap && typeof opts.attachedMap === "object" ? opts.attachedMap : null;
+  let photoIdx = 0;
   const b = new OpsBuilder();
   if (r.title) b.heading(r.title, 1);
   if (r.game) {
-    b.text("\u{1F3AE} \u0418\u0433\u0440\u0430: ", { bold: true });
+    b.text(en ? "\u{1F3AE} Game: " : "\u{1F3AE} \u0418\u0433\u0440\u0430: ", { bold: true });
     b.text(r.game);
     b.newline();
   }
-  const sc = SCORES[r.score];
+  const sc = (en ? SCORES_EN : SCORES)[r.score];
   if (r.score > 0 && sc) {
-    b.text("\u2B50 \u041E\u0446\u0435\u043D\u043A\u0430: ", { bold: true });
+    b.text(en ? "\u2B50 Score: " : "\u2B50 \u041E\u0446\u0435\u043D\u043A\u0430: ", { bold: true });
     b.text(r.score + "/10 ", { bold: true });
     b.text(stars(r.score), { color: C.gold });
-    b.text(" \u2014 \xAB" + sc.t + "\xBB " + sc.i);
+    b.text(en ? ` \u2014 "${sc.t}" ${sc.i}` : " \u2014 \xAB" + sc.t + "\xBB " + sc.i);
     b.newline();
     b.text(sc.d, { italic: true, color: C.dim });
     b.newline();
   }
-  const v = VERDICT[r.recommend];
+  const v = (en ? VERDICT_EN : VERDICT)[r.recommend];
   if (v && r.recommend !== "none") {
-    b.text("\u0412\u0435\u0440\u0434\u0438\u043A\u0442: ", { bold: true });
+    b.text(en ? "Verdict: " : "\u0412\u0435\u0440\u0434\u0438\u043A\u0442: ", { bold: true });
     b.text(v.e + " " + v.t, { bold: true, color: v.c });
     b.newline();
   }
   const aspects = r.aspects || [];
   if (aspects.length && aspects.some((a) => a.score > 0 || a.unrated === "na")) {
     b.gap();
-    b.heading("\u{1F4CA} \u041E\u0446\u0435\u043D\u043A\u0438 \u0430\u0441\u043F\u0435\u043A\u0442\u043E\u0432", 3);
+    b.heading(en ? "\u{1F4CA} Aspect Ratings" : "\u{1F4CA} \u041E\u0446\u0435\u043D\u043A\u0438 \u0430\u0441\u043F\u0435\u043A\u0442\u043E\u0432", 3);
     for (const a of aspects) {
       if (a.score > 0) {
         b.listItem([
@@ -303,9 +335,10 @@ export function buildFallback(r, opts = {}) {
           { text: dots(a.score), attrs: { color: C.cyan } }
         ]);
       } else {
+        const unratedMap = en ? UNRATED_EN : UNRATED;
         b.listItem([
           { text: a.name + " \u2014 ", attrs: { bold: true } },
-          { text: UNRATED[a.unrated] || UNRATED.unsure, attrs: { italic: true, color: C.dim } }
+          { text: unratedMap[a.unrated] || unratedMap.unsure, attrs: { italic: true, color: C.dim } }
         ]);
       }
     }
@@ -419,11 +452,21 @@ export function buildFallback(r, opts = {}) {
         b.gap();
         const items = Array.isArray(d.items) && d.items.length ? d.items : d.url ? [d] : [];
         for (const it of items) {
-          const url = safeUserImageUrl(it.url);
+          const origUrl = safeUserImageUrl(it.url);
+          const panaxUrl = attachedMap && origUrl ? attachedMap[origUrl] : "";
+          const url = panaxUrl || origUrl;
           if (url && /^https?:/i.test(url)) {
             b.embed({ "custom-image": { url, width: it.width || 0, height: it.height || 0 } });
             const cap = String(it.caption || it.alt || "").trim();
-            linkLines(b, [[cap ? "\u{1F5BC} " + cap : "\u{1F5BC} \u0418\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435", url]]);
+            if (attachExt) {
+              photoIdx += 1;
+              const label = en
+                ? `\u{1F5BC} [Photo #${photoIdx}]${cap ? " \u2014 " + cap : ""}`
+                : `\u{1F5BC} [\u0424\u043E\u0442\u043E #${photoIdx}]${cap ? " \u2014 " + cap : ""}`;
+              linkLines(b, [[label, url]]);
+            } else {
+              linkLines(b, [[cap ? "\u{1F5BC} " + cap : (en ? "\u{1F5BC} Image" : "\u{1F5BC} \u0418\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435"), url]]);
+            }
           } else if (url && url.startsWith("data:")) {
             b.text("\u{1F5BC} \u0418\u0437\u043E\u0431\u0440\u0430\u0436\u0435\u043D\u0438\u0435 (\u043B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u043F\u0438\u044F, \u0432\u0438\u0434\u043D\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u0441 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u0435\u043C GameQuill)", { italic: true, color: C.dim });
             b.newline();
@@ -441,19 +484,19 @@ export function buildFallback(r, opts = {}) {
   }
   if ((r.pros || []).length) {
     b.gap();
-    b.text("\u2705 \u041F\u043B\u044E\u0441\u044B", { bold: true, color: C.green, size: "large" });
+    b.text(en ? "\u2705 Pros" : "\u2705 \u041F\u043B\u044E\u0441\u044B", { bold: true, color: C.green, size: "large" });
     b.newline();
     for (const p of r.pros) b.listItem([{ text: p.text, attrs: null }]);
   }
   if ((r.cons || []).length) {
     b.gap();
-    b.text("\u274C \u041C\u0438\u043D\u0443\u0441\u044B", { bold: true, color: C.red, size: "large" });
+    b.text(en ? "\u274C Cons" : "\u274C \u041C\u0438\u043D\u0443\u0441\u044B", { bold: true, color: C.red, size: "large" });
     b.newline();
     for (const c of r.cons) b.listItem([{ text: c.text, attrs: null }]);
   }
   const fp = fingerprintText(b.plain);
   b.gap();
-  b.text(FOOTER_TEXT, { color: C.dim, size: "small", italic: true });
+  b.text(en ? FOOTER_TEXT_EN : FOOTER_TEXT, { color: C.dim, size: "small", italic: true });
   return { ops: b.ops, plain: b.plain.replace(/\n{3,}/g, "\n\n").trim(), fp };
 }
 export function attachCarriers(ops, { text, vs } = {}) {
@@ -461,7 +504,7 @@ export function attachCarriers(ops, { text, vs } = {}) {
   for (const o of out) if (!o.attributes) delete o.attributes;
   if (vs) {
     for (let i = out.length - 1; i >= 0; i--) {
-      if (typeof out[i].insert === "string" && out[i].insert.includes(FOOTER_TEXT)) {
+      if (typeof out[i].insert === "string" && (out[i].insert.includes(FOOTER_TEXT) || out[i].insert.includes(FOOTER_TEXT_EN))) {
         out[i].insert = out[i].insert + vs;
         break;
       }

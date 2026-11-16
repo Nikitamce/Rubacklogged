@@ -46,7 +46,11 @@
     "https://metacritic.com/*",
     "https://www.metacritic.com/*",
     "https://html.duckduckgo.com/*",
-    "https://opencritic-api.p.rapidapi.com/*"
+    "https://opencritic-api.p.rapidapi.com/*",
+    "https://stopgame.ru/*",
+    "https://images.stopgame.ru/*",
+    "https://images.steamusercontent.com/*",
+    "https://www.youtube.com/*"
   ],
   "background": {
     "service_worker": "background.js"

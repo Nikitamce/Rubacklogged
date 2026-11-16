@@ -32,7 +32,9 @@ var IMAGE_HOSTS = [
   "panaxgames.com",
   "www.panaxgames.com",
   "backloggd.com",
-  "www.backloggd.com"
+  "www.backloggd.com",
+  "images.stopgame.ru",
+  "images.steamusercontent.com"
 ];
 export var DEFAULT_INTEG = {
   panax: { name: "PANAX", icon: "\u{1F3AE}", color: "#7c5cff" },

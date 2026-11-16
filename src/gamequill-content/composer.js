@@ -290,7 +290,13 @@ function showComposerPreview(ta, doc, { carrier, locked } = {}) {
   toggle.className = 'ghost';
   toggle.setAttribute('data-gq-toggle', '');
   toggle.textContent = 'Показать текст сайта';
-  bar.append(label, editBtn, toggle);
+
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.className = 'ghost';
+  clearBtn.setAttribute('data-gq-clear', '');
+  clearBtn.textContent = '🗑 Очистить';
+  bar.append(label, editBtn, toggle, clearBtn);
 
   const body = document.createElement('div');
   body.setAttribute('data-gq-preview-body', '');
@@ -323,6 +329,13 @@ function showComposerPreview(ta, doc, { carrier, locked } = {}) {
     e.stopPropagation();
     showing = !showing;
     apply();
+  });
+  clearBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hidePreview();
+    lastDoc = null;
+    if (ta) writeIntoTextarea(ta, '');
   });
   apply();
 

@@ -711,7 +711,7 @@ $('#blockMenu').addEventListener('click',e=>{
 });
 document.addEventListener('click',e=>{
   if(!e.target.closest('#blockMenu')&&!e.target.closest('[data-act="add"]')&&!e.target.closest('[data-a="add-block"]'))$('#blockMenu').classList.remove('on');
-  if(!e.target.closest('#expMenu')&&!e.target.closest('[data-a="exp-menu"]'))$('#expMenu').classList.remove('on');
+  if(!e.target.closest('#expMenu')&&!e.target.closest('[data-a="exp-menu"]')&&!e.target.closest('#btnExportAll'))$('#expMenu').classList.remove('on');
 });
 
 /* ==========================================================================
@@ -746,7 +746,7 @@ document.addEventListener('click',e=>{
     case 'del':if(cur())deleteReview(cur().id);break;
     case 'demo':seedDemo(true);break;
     case 'settings':openSettings();break;
-    case 'import':$('#fileIn').click();break;
+    case 'import':openImportModal('url');break;
     case 'exp-menu':openExpMenu(btn);break;
     case 'exp-md':download(currentMd(),fileName(cur()||{})+'.md');break;
     case 'exp-md-all':download(allMd(),'GameQuill-все-обзоры.md');break;
@@ -1249,6 +1249,8 @@ function renderSettings(){
       <div class="field"><label>Поведение редактора</label>
         <div class="intg"><div class="ei">💾</div><div class="nm"><b>Автосохранение</b><span>обзоры хранятся локально в браузере</span></div><div class="tg on"></div></div>
         <div class="intg" data-t="ai"><div class="ei">✨</div><div class="nm"><b>ИИ-поиск игр</b><span>подбирать обложки и описания автоматически (заглушка — новые интеграции добавит ИИ)</span></div><div class="tg ${state.settings.aiSearch?'on':''}"></div></div>
+        <div class="intg" data-t="impExt"><div class="ei">📷</div><div class="nm"><b>Импорт фото с внешних сайтов</b><span>сохранять картинки/скриншоты по умолчанию при импорте со StopGame и Steam</span></div><div class="tg ${state.settings.importExternalImages!==false?'on':''}"></div></div>
+        <div class="intg" data-t="attachExt"><div class="ei">🖼</div><div class="nm"><b>Нумерация внешних фото в тексте</b><span>в текстовом фолбэке помечает внешние фото («Фото #1», «Фото #2»…) со ссылками</span></div><div class="tg ${state.settings.attachExternalImages?'on':''}"></div></div>
       </div>
       <div class="field"><label>Горячие клавиши</label>
         <div style="font-size:12px;color:var(--mut);line-height:2">
@@ -1268,6 +1270,10 @@ function renderSettings(){
     });
     b.querySelector('[data-t="ai"]').addEventListener('click',()=>{state.settings.aiSearch=!state.settings.aiSearch;save(true);renderSettings();
       toast(state.settings.aiSearch?'ИИ-поиск включён (демо)':'ИИ-поиск выключен',state.settings.aiSearch?'ok':'warn')});
+    b.querySelector('[data-t="impExt"]').addEventListener('click',()=>{state.settings.importExternalImages=(state.settings.importExternalImages===false);save(true);renderSettings();
+      toast(state.settings.importExternalImages!==false?'Импорт фото с сайтов включён':'Импорт фото с сайтов отключён',state.settings.importExternalImages!==false?'ok':'warn')});
+    b.querySelector('[data-t="attachExt"]').addEventListener('click',()=>{state.settings.attachExternalImages=!state.settings.attachExternalImages;save(true);renderSettings();
+      toast(state.settings.attachExternalImages?'Нумерация фото («Фото #1», #2…) включена':'Нумерация внешних фото отключена',state.settings.attachExternalImages?'ok':'warn')});
     return;
   }
   if(setTab==='int'){
@@ -1323,13 +1329,13 @@ function renderSettings(){
       const d=e.target.closest('[data-d]');if(!d)return;const k=d.dataset.d;
       if(k==='md')download(allMd(),'GameQuill-все-обзоры.md','md');
       if(k==='gq')downloadGQ(true);
-      if(k==='imp'){closeModal('setModal');$('#fileIn').click()}
+      if(k==='imp'){closeModal('setModal');openImportModal('url')}
       if(k==='clr'&&confirm('Удалить ВСЕ обзоры? Это необратимо.')){state.reviews=[];state.currentId=null;save(true);renderSidebar();renderEditor();closeModal('setModal');toast('Все обзоры удалены','warn')}
     });
   }
 }
 function closeModal(id){$('#'+id).classList.remove('on')}
-$$('[data-close]').forEach(b=>b.addEventListener('click',()=>{b.closest('.mv').classList.remove('on')}));
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('.mv [data-close]');if(b)b.closest('.mv').classList.remove('on')});
 $$('.mv').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on')}));
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){$$('.mv.on').forEach(m=>m.classList.remove('on'));$('#blockMenu').classList.remove('on');$('#expMenu').classList.remove('on');$('#flt').classList.remove('on')}
@@ -1351,10 +1357,15 @@ function openExpMenu(anchor){
    <div class="pop-sep"></div><div class="pop-h">Все обзоры (${state.reviews.length})</div>
    <button class="pop-i" data-e="mdall"><span class="e">📚</span><span>Markdown — все обзоры<small>один файл .md</small></span></button>
    <button class="pop-i" data-e="gqall"><span class="e">🗃</span><span>GameQuill — все обзоры<small>архив .gq для переноса</small></span></button>`;
-  const r=(anchor&&anchor.getBoundingClientRect())||{left:100,bottom:100};
-  m.style.left=Math.min(r.left,innerWidth-250)+'px';m.style.top=(r.bottom+6)+'px';m.classList.add('on');
+  const r=(anchor&&anchor.getBoundingClientRect())||{left:100,bottom:100,top:100};
+  m.classList.add('on');
+  const mh=m.offsetHeight||240;
+  const mw=m.offsetWidth||250;
+  const top=(r.bottom+6+mh>innerHeight)?Math.max(8,r.top-mh-6):r.bottom+6;
+  m.style.left=Math.max(8,Math.min(r.left,innerWidth-mw-8))+'px';m.style.top=top+'px';
   m.onclick=e=>{const it=e.target.closest('[data-e]');if(!it)return;m.classList.remove('on');
     const k=it.dataset.e;
+    if((k==='md'||k==='gq'||k==='cmd')&&!cur())return toast('Нет открытого обзора','warn');
     if(k==='md')download(reviewToMd(cur()),fileName(cur())+'.md');
     if(k==='gq')downloadGQ(false);
     if(k==='cmd')copyMd();
@@ -1468,33 +1479,225 @@ function allMd(){
   return head+state.reviews.map(r=>'\n\n---\n\n'+reviewToMd(r)).join('');
 }
 
-/* ---------- импорт ---------- */
-$('#fileIn').addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{
-    const p=JSON.parse(rd.result);
+/* ---------- импорт (файл, ссылка StopGame / Steam, BBCode / HTML) ---------- */
+function addImportedReviews(list){
+  let added=0;
+  list.map(x=>GQ.toEditorReview(x)).filter(Boolean).forEach(rv=>{
+    if(!rv||typeof rv!=='object')return;
+    rv.id=uid();rv.title=rv.title||'';rv.blocks=rv.blocks||[];rv.pros=rv.pros||[];rv.cons=rv.cons||[];
+    rv.aspects=rv.aspects||[];rv.score=rv.score||0;rv.recommend=rv.recommend||'none';
+    rv.createdAt=rv.createdAt||Date.now();rv.updatedAt=Date.now();
+    state.reviews.unshift(rv);added++;
+    if(added===1)state.currentId=rv.id;
+  });
+  if(added){
+    save(true);renderSidebar();renderEditor();
+  }
+  return added;
+}
+async function handleImportedFile(f){
+  if(!f)return;
+  const text=await f.text();
+  let jsonOk=false;
+  try{
+    const p=JSON.parse(text);
     let incoming=[];
     if(p.app==='GameQuill'&&p.reviews)incoming=p.reviews;
     else if(Array.isArray(p))incoming=p;
     else if(p.id&&p.blocks)incoming=[p];
     else if(p.review)incoming=[p.review];
-    else throw new Error('bad');
-    if(p.integrations&&Array.isArray(p.integrations)){
-      p.integrations.map(GQ.cleanInteg).filter(Boolean).forEach(ni=>{if(!state.settings.integrations.some(x=>x.id===ni.id))state.settings.integrations.push(ni)})}
-    let added=0;
-    incoming=incoming.map(x=>GQ.toEditorReview(x)).filter(Boolean);
-    incoming.forEach(rv=>{
-      if(!rv||typeof rv!=='object')return;
-      rv.id=uid();rv.title=rv.title||'';rv.blocks=rv.blocks||[];rv.pros=rv.pros||[];rv.cons=rv.cons||[];
-      rv.aspects=rv.aspects||[];rv.score=rv.score||0;rv.recommend=rv.recommend||'none';rv.createdAt=rv.createdAt||Date.now();rv.updatedAt=Date.now();
-      state.reviews.unshift(rv);added++;
-      if(added===1)state.currentId=rv.id;
+    if(incoming.length){
+      if(p.integrations&&Array.isArray(p.integrations)){
+        p.integrations.map(GQ.cleanInteg).filter(Boolean).forEach(ni=>{if(!state.settings.integrations.some(x=>x.id===ni.id))state.settings.integrations.push(ni)});
+      }
+      const added=addImportedReviews(incoming);
+      closeModal('impModal');
+      toast('Импортировано обзоров: '+added+' 💠','ok');
+      jsonOk=true;
+    }
+  }catch{}
+  if(jsonOk)return;
+  try{
+    if(!window.GQ||typeof GQ.importReviewFromText!=='function')throw new Error('Импортёр недоступен');
+    const res=await GQ.importReviewFromText(text,{
+      addGameCard:true,
+      extractMeta:true,
+      importImages:state.settings.importExternalImages!==false
     });
-    save(true);renderSidebar();renderEditor();toast('Импортировано обзоров: '+added+' 💠','ok');
-  }catch(err){toast('Файл не похож на экспорт GameQuill','err')}
-  e.target.value=''};
-  rd.readAsText(f);
+    if(!res||!res.review||!res.review.blocks.length)throw new Error('Не удалось распознать обзор в файле');
+    addImportedReviews([res.review]);
+    closeModal('impModal');
+    toast(`Импортировано из файла: ${res.stats.blocks} бл. 💠`,'ok');
+  }catch(err){
+    toast(err&&err.message?err.message:'Файл не похож на экспорт GameQuill или обзор','err');
+  }
+}
+$('#fileIn').addEventListener('change',async e=>{
+  const f=e.target.files[0];
+  await handleImportedFile(f);
+  e.target.value='';
 });
+
+let impTab='url';
+function openImportModal(tab){
+  impTab=tab||'url';
+  $$('#impTabs .tab').forEach(x=>x.classList.toggle('on',x.dataset.it===impTab));
+  renderImportModal();
+  $('#impModal').classList.add('on');
+  setTimeout(()=>{const el=$('#impUrl')||$('#impRawText');if(el)el.focus()},80);
+}
+$('#impTabs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-it]');if(!t)return;
+  impTab=t.dataset.it;
+  $$('#impTabs .tab').forEach(x=>x.classList.toggle('on',x.dataset.it===impTab));
+  renderImportModal();
+});
+function renderImportModal(){
+  const b=$('#impBody');if(!b)return;
+  const imgChecked=state.settings.importExternalImages!==false?'checked':'';
+  if(impTab==='url'){
+    b.innerHTML=`
+      <div class="field">
+        <label>Ссылка на обзор (StopGame, Steam или другой сайт)</label>
+        <input class="inp" id="impUrl" placeholder="https://stopgame.ru/game/.../review/... или https://steamcommunity.com/id/.../recommended/...">
+        <div class="imp-hints">
+          <button type="button" class="imp-chip" data-ex="https://stopgame.ru/game/ace_attorney_investigations_collection/review/22317">Пример StopGame</button>
+          <button type="button" class="imp-chip" data-ex="https://steamcommunity.com/id/BlackOut228/recommended/3159330">Пример Steam</button>
+        </div>
+      </div>
+      <div class="imp-opts">
+        <label class="imp-opt"><input type="checkbox" id="impOptCard" checked> Добавить карточку игры в начало</label>
+        <label class="imp-opt"><input type="checkbox" id="impOptMeta" checked> Перенести оценки, таблицы аспектов, плюсы и минусы</label>
+        <label class="imp-opt"><input type="checkbox" id="impOptImages" ${imgChecked}> Импортировать фото со StopGame / Steam</label>
+      </div>
+      <div class="mfoot" style="padding:8px 0 0;border:0">
+        <button type="button" class="ghost" data-close>Отмена</button>
+        <button type="button" class="pri" id="impUrlGo">🌐 Импортировать обзор</button>
+      </div>
+      <div id="impStat"></div>`;
+    $$('.imp-chip',b).forEach(ch=>ch.addEventListener('click',()=>{
+      const inp=$('#impUrl');if(inp){inp.value=ch.dataset.ex;inp.focus()}
+    }));
+    const runUrl=async()=>{
+      const url=($('#impUrl')?.value||'').trim();
+      if(!url)return toast('Введите ссылку на обзор','warn');
+      const wantImg=!!$('#impOptImages')?.checked;
+      state.settings.importExternalImages=wantImg;
+      save(true);
+      const btn=$('#impUrlGo'),stat=$('#impStat');
+      btn.disabled=true;btn.textContent='⏳ Загружаем и разбираем…';
+      if(stat)stat.innerHTML='<div class="imp-stat">Загружаем страницу обзора, картинки, оценки и данные игры…</div>';
+      try{
+        const res=await GQ.importReviewFromUrl(url,{
+          addGameCard:!!$('#impOptCard')?.checked,
+          extractMeta:!!$('#impOptMeta')?.checked,
+          importImages:wantImg
+        });
+        if(!res||!res.review||!res.review.blocks.length)throw new Error('На странице не удалось найти содержимое обзора.');
+        addImportedReviews([res.review]);
+        closeModal('impModal');
+        const st=res.stats||{};
+        const extras=[st.pros?`+${st.pros}`:'',st.cons?`−${st.cons}`:'',st.aspects?`аспектов: ${st.aspects}`:'',st.score?`оценка ${st.score}/10`:''].filter(Boolean).join(' · ');
+        toast(`Обзор импортирован (${st.blocks||0} бл.${extras?', '+extras:''}) 💠`,'ok');
+        if(res.warnings&&res.warnings.length)toast(res.warnings[0],'warn');
+      }catch(err){
+        const msg=err&&err.message?err.message:'Ошибка загрузки обзора';
+        const hint=err&&err.code==='steam-hidden'
+          ? '<br><button type="button" class="mini" id="impGoPaste" style="margin-top:8px">📋 Вставить BBCode / HTML вручную</button>'
+          : '';
+        if(stat)stat.innerHTML=`<div class="imp-stat err">${esc(msg)}${hint}</div>`;
+        const go=$('#impGoPaste');
+        if(go)go.addEventListener('click',()=>{impTab='paste';$$('#impTabs .tab').forEach(x=>x.classList.toggle('on',x.dataset.it==='paste'));renderImportModal()});
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent='🌐 Импортировать обзор'}
+      }
+    };
+    $('#impUrlGo').addEventListener('click',runUrl);
+    $('#impUrl').addEventListener('keydown',e=>{if(e.key==='Enter')runUrl()});
+    return;
+  }
+  if(impTab==='paste'){
+    b.innerHTML=`
+      <div class="imp-grid">
+        <div class="field"><label>Название игры (если не указано в тексте)</label><input class="inp" id="impGameInp" placeholder="Например: Assassin's Creed Shadows"></div>
+        <div class="field"><label>Заголовок обзора (необязательно)</label><input class="inp" id="impTitleInp" placeholder="Автоопределение из первого заголовка"></div>
+      </div>
+      <div class="imp-grid">
+        <div class="field"><label>Вердикт</label>
+          <select class="inp" id="impVerdictInp">
+            <option value="none">Автоопределение</option>
+            <option value="yes">👍 Рекомендую</option>
+            <option value="neutral">🤔 Нейтрально</option>
+            <option value="no">👎 Не рекомендую</option>
+          </select>
+        </div>
+        <div class="field"><label>Оценка (0 = авто из текста/таблицы)</label><input class="inp" id="impScoreInp" type="number" min="0" max="10" value="0"></div>
+      </div>
+      <div class="field">
+        <label>Вставьте Steam BBCode ([h1], [table], [spoiler], [quote]…), HTML или текст</label>
+        <textarea class="inp imp-ta" id="impRawText" placeholder="[h1]Заголовок обзора[/h1]&#10;[b]Жирный текст[/b], [spoiler]Спойлер[/spoiler], [table]…[/table] или скопированный HTML страницы"></textarea>
+      </div>
+      <div class="imp-opts">
+        <label class="imp-opt"><input type="checkbox" id="impOptCardP" checked> Добавить карточку игры в начало</label>
+        <label class="imp-opt"><input type="checkbox" id="impOptMetaP" checked> Распознавать таблицы оценок и вердикт</label>
+        <label class="imp-opt"><input type="checkbox" id="impOptImagesP" ${imgChecked}> Импортировать фото со StopGame / Steam</label>
+      </div>
+      <div class="mfoot" style="padding:4px 0 0;border:0">
+        <button type="button" class="ghost" data-close>Отмена</button>
+        <button type="button" class="pri" id="impPasteGo">📋 Разобрать и импортировать</button>
+      </div>
+      <div id="impStatP"></div>`;
+    $('#impPasteGo').addEventListener('click',async()=>{
+      const raw=($('#impRawText')?.value||'').trim();
+      if(!raw)return toast('Вставьте BBCode, HTML или текст обзора','warn');
+      const wantImg=!!$('#impOptImagesP')?.checked;
+      state.settings.importExternalImages=wantImg;
+      save(true);
+      const btn=$('#impPasteGo'),stat=$('#impStatP');
+      btn.disabled=true;btn.textContent='⏳ Переносим оформление…';
+      try{
+        const res=await GQ.importReviewFromText(raw,{
+          game:($('#impGameInp')?.value||'').trim(),
+          title:($('#impTitleInp')?.value||'').trim(),
+          recommend:$('#impVerdictInp')?.value||'none',
+          score:parseInt($('#impScoreInp')?.value||'0',10)||0,
+          addGameCard:!!$('#impOptCardP')?.checked,
+          extractMeta:!!$('#impOptMetaP')?.checked,
+          importImages:wantImg
+        });
+        if(!res||!res.review||!res.review.blocks.length)throw new Error('Не удалось распознать блоки обзора.');
+        addImportedReviews([res.review]);
+        closeModal('impModal');
+        toast(`Импортировано: ${res.stats.blocks} бл. 💠`,'ok');
+      }catch(err){
+        if(stat)stat.innerHTML=`<div class="imp-stat err">${esc(err&&err.message?err.message:'Ошибка разбора')}</div>`;
+      }finally{
+        if(btn){btn.disabled=false;btn.textContent='📋 Разобрать и импортировать'}
+      }
+    });
+    return;
+  }
+  b.innerHTML=`
+    <div class="imp-drop" id="impDrop">
+      <div class="big">📂</div>
+      <b>Нажмите или перетащите файл обзора сюда</b>
+      <small>Поддерживаются: экспорт GameQuill (.json, .gq), сохранённые страницы StopGame / Steam (.html), текстовый BBCode Steam (.txt)</small>
+    </div>
+    <div class="mfoot" style="padding:12px 0 0;border:0">
+      <button type="button" class="ghost" data-close>Закрыть</button>
+      <button type="button" class="pri" id="impFileBtn">📄 Выбрать файл</button>
+    </div>`;
+  const dz=$('#impDrop');
+  dz.addEventListener('click',()=>$('#fileIn').click());
+  $('#impFileBtn').addEventListener('click',()=>$('#fileIn').click());
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',async e=>{
+    e.preventDefault();dz.classList.remove('drag');
+    const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+    if(f)await handleImportedFile(f);
+  });
+}
 
 /* ==========================================================================
    САНИТАЙЗЕР
@@ -1530,7 +1733,7 @@ $$('.rb-tab').forEach(t=>t.addEventListener('click',()=>{
 }));
 /* кнопка "Экспорт" в сайдбаре */
 $('#btnExportAll').addEventListener('click',e=>{e.stopPropagation();openExpMenu(e.currentTarget)});
-$('#btnImport').addEventListener('click',()=>$('#fileIn').click());
+$('#btnImport').addEventListener('click',()=>openImportModal('url'));
 $('#btnSettings').addEventListener('click',()=>openSettings());
 $('#btnNew').addEventListener('click',()=>newReview());
 $('#wNew').addEventListener('click',()=>newReview());
@@ -1707,8 +1910,10 @@ GQ.onMessage(m=>{
     rv.panaxPostId=gqEnv.postId;
     Object.entries(rv.integ||{}).forEach(([k,v])=>{if(!state.settings.integrations.some(x=>x.id===k)){const ni=GQ.cleanInteg({id:k,name:v.name,icon:v.icon,color:v.color,enabled:true});if(ni)state.settings.integrations.push(ni)}});
     delete rv.integ;
-    const ex=rv.panaxPostId?state.reviews.find(x=>x.panaxPostId===rv.panaxPostId):null;
-    if(ex&&m.soft){state.currentId=ex.id;save(true);renderSidebar();renderEditor();return}
+    const ex=rv.panaxPostId
+      ? state.reviews.find(x=>x.panaxPostId===rv.panaxPostId)
+      : state.reviews.find(x=>!x.panaxPostId&&(x.title||'')===(rv.title||'')&&(x.game||'')===(rv.game||'')&&(x.blocks?.length||0)===(rv.blocks?.length||0));
+    if(ex&&(m.soft||!rv.panaxPostId)){state.currentId=ex.id;save(true);renderSidebar();renderEditor();return}
     if(ex){
       if(ex.updatedAt>rv.updatedAt&&!confirm('У вас есть более новый локальный черновик этого поста. Заменить его версией из опубликованного поста?')){state.currentId=ex.id;renderSidebar();renderEditor();return}
       Object.assign(ex,rv,{id:ex.id,createdAt:ex.createdAt});state.currentId=ex.id;

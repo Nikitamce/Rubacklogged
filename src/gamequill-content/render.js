@@ -3,7 +3,7 @@ import { safeUrl, safeImageUrl, safeColor, integMeta } from "../shared/gq-schema
 import { sanitizeToFragment } from "../shared/gq-html.js";
 import { EXTRA_VARIANT_IDS, renderExtraGameCard } from "../shared/gq-cards.js";
 import { paletteFor, coverArt } from "../shared/gq-cover.js";
-import { SCORES, VERDICT, UNRATED } from "../shared/gq-fallback.js";
+import { SCORES, SCORES_EN, VERDICT, VERDICT_EN, UNRATED, UNRATED_EN, isEnglishReview } from "../shared/gq-fallback.js";
 
 function h(doc, tag, attrs, ...kids) {
   const el = doc.createElement(tag);
@@ -43,24 +43,26 @@ function richText(doc, html, cls) {
   return d;
 }
 function scoreBlock(doc, r) {
-  const sc = SCORES[r.score];
-  const stars = h(doc, "div", { class: "stars", "aria-label": r.score ? `\u041E\u0446\u0435\u043D\u043A\u0430 ${r.score} \u0438\u0437 10` : "\u0411\u0435\u0437 \u043E\u0446\u0435\u043D\u043A\u0438" });
+  const en = isEnglishReview(r);
+  const sc = (en ? SCORES_EN : SCORES)[r.score];
+  const stars = h(doc, "div", { class: "stars", "aria-label": r.score ? (en ? `Score ${r.score} of 10` : `\u041E\u0446\u0435\u043D\u043A\u0430 ${r.score} \u0438\u0437 10`) : (en ? "No score" : "\u0411\u0435\u0437 \u043E\u0446\u0435\u043D\u043A\u0438") });
   for (let i = 1; i <= 10; i++) stars.append(h(doc, "span", { class: "star" + (i <= r.score ? " lit" : "") }, "\u2605"));
   const left = h(
     doc,
     "div",
     { class: "sc-left" },
     stars,
-    h(doc, "div", { class: "sc-num" }, h(doc, "b", { text: r.score ? String(r.score) : "\u2014" }), h(doc, "i", { text: "\u0438\u0437 10" })),
+    h(doc, "div", { class: "sc-num" }, h(doc, "b", { text: r.score ? String(r.score) : "\u2014" }), h(doc, "i", { text: en ? "of 10" : "\u0438\u0437 10" })),
     sc ? h(doc, "div", { class: "sc-cap" }, h(doc, "span", { class: "ico", text: sc.i }), h(doc, "span", null, h(doc, "b", { text: sc.t }), " \xB7 " + r.score + "/10", h(doc, "span", { class: "d", text: sc.d }))) : null
   );
-  const v = VERDICT[r.recommend];
+  const v = (en ? VERDICT_EN : VERDICT)[r.recommend];
   const verdict = r.recommend !== "none" && v ? h(doc, "div", { class: "verdict v-" + r.recommend }, h(doc, "span", { class: "e", text: v.e }), v.t) : null;
   return h(doc, "div", { class: "scorecard" }, left, verdict);
 }
 function aspectsBlock(doc, r) {
   if (!r.aspects.length || !r.aspects.some((a) => a.score > 0 || a.unrated === "na")) return null;
-  const box = h(doc, "div", { class: "aspects" }, h(doc, "div", { class: "sec-h", text: "\u{1F4CA} \u041E\u0446\u0435\u043D\u043A\u0438 \u0430\u0441\u043F\u0435\u043A\u0442\u043E\u0432" }));
+  const en = isEnglishReview(r);
+  const box = h(doc, "div", { class: "aspects" }, h(doc, "div", { class: "sec-h", text: en ? "\u{1F4CA} Aspect Ratings" : "\u{1F4CA} \u041E\u0446\u0435\u043D\u043A\u0438 \u0430\u0441\u043F\u0435\u043A\u0442\u043E\u0432" }));
   for (const a of r.aspects) {
     const row = h(doc, "div", { class: "asp" + (a.score ? "" : " off") }, h(doc, "div", { class: "asp-n", text: a.name }));
     if (a.score) {
@@ -703,8 +705,9 @@ function block(doc, r, b) {
 }
 function prosCons(doc, r) {
   if (!r.pros.length && !r.cons.length) return null;
+  const en = isEnglishReview(r);
   const col = (cls, title, items, sign) => h(doc, "div", { class: "pc " + cls }, h(doc, "h4", { text: title }), ...items.map((it) => h(doc, "div", { class: "pc-i" }, h(doc, "span", { class: "pc-ic", text: sign }), h(doc, "span", { text: it.text }))));
-  return h(doc, "div", { class: "proscons" }, r.pros.length ? col("p", "\u2705 \u041F\u043B\u044E\u0441\u044B", r.pros, "+") : null, r.cons.length ? col("c", "\u274C \u041C\u0438\u043D\u0443\u0441\u044B", r.cons, "\u2212") : null);
+  return h(doc, "div", { class: "proscons" }, r.pros.length ? col("p", en ? "\u2705 Pros" : "\u2705 \u041F\u043B\u044E\u0441\u044B", r.pros, "+") : null, r.cons.length ? col("c", en ? "\u274C Cons" : "\u274C \u041C\u0438\u043D\u0443\u0441\u044B", r.cons, "\u2212") : null);
 }
 export function renderReview(doc, r) {
   const root = h(doc, "article", { class: "gq" });

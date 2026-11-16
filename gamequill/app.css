@@ -718,3 +718,21 @@ button.rb-btn.big[data-a="demo"] em{max-width:9.5em;white-space:normal;line-heig
 .theme-sw-opt:hover{background:var(--panel3)}
 .theme-sw-opt.on{background:rgba(var(--acc-rgb),.18);font-weight:600}
 .theme-sw-swatch{width:16px;height:16px;border-radius:5px;border:1px solid rgba(255,255,255,.22);flex:0 0 16px}
+
+/* Review importer modal */
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.imp-opts{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 12px}
+.imp-opt{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--txt);cursor:pointer;user-select:none}
+.imp-opt input{accent-color:var(--acc);width:15px;height:15px;cursor:pointer}
+.imp-drop{border:2px dashed var(--line2);border-radius:14px;padding:28px 18px;text-align:center;background:var(--panel);cursor:pointer;transition:border-color .16s,background .16s}
+.imp-drop:hover,.imp-drop.drag{border-color:var(--acc);background:rgba(var(--acc-rgb),.08)}
+.imp-drop .big{font-size:28px;margin-bottom:6px}
+.imp-drop small{display:block;margin-top:4px;color:var(--mut);font-size:12px}
+.imp-stat{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+.imp-stat.err{border-color:rgba(255,95,109,.55);background:rgba(255,95,109,.1);color:#ffb3bb}
+.imp-stat.ok{border-color:rgba(62,213,152,.5);background:rgba(62,213,152,.1)}
+.imp-hints{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.imp-chip{padding:4px 9px;border-radius:999px;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);color:var(--mut);cursor:pointer;transition:.12s}
+.imp-chip:hover{border-color:var(--acc);color:var(--txt)}
+.imp-ta{min-height:210px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.45;resize:vertical}
+@media(max-width:640px){.imp-grid{grid-template-columns:1fr}}
